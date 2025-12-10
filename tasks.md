@@ -73,11 +73,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T001 [P] Initialize project scaffold with directory structure, virtual environment, and dependencies in apps/backend/
-- [ ] T002 [P] Configure FastAPI application with CORS, middleware, health check endpoint in app/main.py
-- [ ] T003 [P] Set up SQLAlchemy database connection with session management in app/database.py
-- [ ] T004 Initialize Alembic for database migrations in alembic/
-- [ ] T005 [P] Create docker-compose.yml with PostgreSQL, Redis, MinIO services
+- [X] T001 [P] Initialize project scaffold with directory structure, virtual environment, and dependencies in apps/backend/
+- [X] T002 [P] Configure FastAPI application with CORS, middleware, health check endpoint in app/main.py
+- [X] T003 [P] Set up SQLAlchemy database connection with session management in app/database.py
+- [X] T004 Initialize Alembic for database migrations in alembic/
+- [X] T005 [P] Create docker-compose.yml with PostgreSQL, Redis, MinIO services
 
 ---
 
@@ -93,12 +93,12 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T006 [P] Implement User model with auth_provider enum and indexes in app/models/user.py
-- [ ] T007 [P] Implement Tag model with unique name constraint in app/models/tag.py
-- [ ] T008 [P] Implement Speech model with many-to-many Tag relationship through speech_tags join table in app/models/speech.py
-- [ ] T009 [P] Implement GameSession model with foreign key to User in app/models/game_session.py
-- [ ] T010 [P] Implement GameResult model with foreign keys to GameSession and Speech in app/models/game_result.py
-- [ ] T011 Create database seed script with sample tags, speeches, and test users in scripts/seed_database.py
+- [X] T006 [P] Implement User model with auth_provider enum and indexes in app/models/user.py
+- [X] T007 [P] Implement Tag model with unique name constraint in app/models/tag.py
+- [X] T008 [P] Implement Speech model with many-to-many Tag relationship through speech_tags join table in app/models/speech.py
+- [X] T009 [P] Implement GameSession model with foreign key to User in app/models/game_session.py
+- [X] T010 [P] Implement GameResult model with foreign keys to GameSession and Speech in app/models/game_result.py
+- [X] T011 Create database seed script with sample tags, speeches, and test users in scripts/seed_database.py
 
 ---
 
@@ -120,11 +120,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T012 [P] [US1] Implement password hashing, JWT generation, and validation utilities in app/utils/security.py
-- [ ] T013 [P] [US1] Create auth Pydantic schemas for register, login, social auth, token responses in app/schemas/auth.py
-- [ ] T014 [US1] Implement AuthService with registration, login, OAuth validation (Google/Apple/Facebook), JWT issuance in app/services/auth_service.py
-- [ ] T015 [US1] Create auth API endpoints: POST /auth/register, POST /auth/login, POST /auth/social, POST /auth/refresh in app/api/v1/auth.py
-- [ ] T016 [US1] Implement get_current_user dependency for JWT token validation in app/dependencies.py
+- [X] T012 [P] [US1] Implement password hashing, JWT generation, and validation utilities in app/utils/security.py
+- [X] T013 [P] [US1] Create auth Pydantic schemas for register, login, social auth, token responses in app/schemas/auth.py
+- [X] T014 [US1] Implement AuthService with registration, login, OAuth validation (Google/Apple/Facebook), JWT issuance in app/services/auth_service.py
+- [X] T015 [US1] Create auth API endpoints: POST /auth/register, POST /auth/login, POST /auth/social, POST /auth/refresh in app/api/v1/auth.py
+- [X] T016 [US1] Implement get_current_user dependency for JWT token validation in app/dependencies.py
 
 ---
 
@@ -148,17 +148,17 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T017 [US2] Create speech and game Pydantic schemas with validation in app/schemas/speech.py and app/schemas/game.py
-- [ ] T018 [P] [US2] Implement MinIO storage service for audio upload, signed URLs, bucket operations in app/services/storage_service.py
-- [ ] T019 [P] [US2] Implement SpeechService with random speech filtering (level, type, tags) and SQL queries in app/services/speech_service.py
-- [ ] T020 [P] [US2] Implement GameService for session creation with results in transaction in app/services/game_service.py
-- [ ] T021 [US2] Create speech provider base interface with ScoringResult and WordScore dataclasses in app/services/speech_provider/base.py
-- [ ] T022 [P] [US2] Create custom exception classes (SpeechProcessingError, AuthenticationError, etc.) for typed error handling in app/core/exceptions.py
-- [ ] T023 [P] [US2] Implement AudioBufferManager context manager for guaranteed buffer cleanup in app/utils/audio_buffer.py
-- [ ] T024 [US2] Implement Azure Speech Provider with pronunciation assessment and memory buffer audio handling in app/services/speech_provider/azure_provider.py
-- [ ] T025 [US2] Create speech provider factory that returns Azure provider for MVP in app/services/speech_provider/factory.py
-- [ ] T026 [US2] Create game API endpoints: POST /game/speeches/random, POST /game/sessions in app/api/v1/game.py
-- [ ] T027 [US2] Create speech scoring endpoint: POST /speech/score with multipart audio upload, AudioBufferManager for cleanup, and typed exception handling in app/api/v1/speech.py
+- [X] T017 [US2] Create speech and game Pydantic schemas with validation in app/schemas/speech.py and app/schemas/game.py
+- [X] T018 [P] [US2] Implement MinIO storage service for audio upload, signed URLs, bucket operations in app/services/storage_service.py
+- [X] T019 [P] [US2] Implement SpeechService with random speech filtering (level, type, tags) and SQL queries in app/services/speech_service.py
+- [X] T020 [P] [US2] Implement GameService for session creation with results in transaction in app/services/game_service.py
+- [X] T021 [US2] Create speech provider base interface with ScoringResult and WordScore dataclasses in app/services/speech_provider/base.py
+- [X] T022 [P] [US2] Create custom exception classes (SpeechProcessingError, AuthenticationError, etc.) for typed error handling in app/core/exceptions.py
+- [X] T023 [P] [US2] Implement AudioBufferManager context manager for guaranteed buffer cleanup in app/utils/audio_buffer.py
+- [X] T024 [US2] Implement Azure Speech Provider with pronunciation assessment and memory buffer audio handling in app/services/speech_provider/azure_provider.py
+- [X] T025 [US2] Create speech provider factory that returns Azure provider for MVP in app/services/speech_provider/factory.py
+- [X] T026 [US2] Create game API endpoints: POST /game/speeches/random, POST /game/sessions in app/api/v1/game.py
+- [X] T027 [US2] Create speech scoring endpoint: POST /speech/score with multipart audio upload, AudioBufferManager for cleanup, and typed exception handling in app/api/v1/speech.py
 
 ---
 
@@ -182,11 +182,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T026 [P] [US3] Create user Pydantic schemas for profile responses in app/schemas/user.py
-- [ ] T027 [P] [US3] Implement UserService with profile get/update/delete operations in app/services/user_service.py
-- [ ] T028 [US3] Create user API endpoints: GET /users/me, PUT /users/me, DELETE /users/me in app/api/v1/users.py
-- [ ] T029 [US3] Add game session history methods to GameService with pagination and filters in app/services/game_service.py
-- [ ] T030 [US3] Add game history endpoints: GET /game/sessions, GET /game/sessions/{id} to app/api/v1/game.py
+- [X] T026 [P] [US3] Create user Pydantic schemas for profile responses in app/schemas/user.py
+- [X] T027 [P] [US3] Implement UserService with profile get/update/delete operations in app/services/user_service.py
+- [X] T028 [US3] Create user API endpoints: GET /users/me, PUT /users/me, DELETE /users/me in app/api/v1/users.py
+- [X] T029 [US3] Add game session history methods to GameService with pagination and filters in app/services/game_service.py
+- [X] T030 [US3] Add game history endpoints: GET /game/sessions, GET /game/sessions/{id} to app/api/v1/game.py
 
 ---
 
@@ -210,11 +210,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T031 [P] [US4] Create admin speech CRUD endpoints with pagination and filters in app/api/v1/admin/speeches.py
-- [ ] T032 [P] [US4] Create admin tag CRUD endpoints with speech count in app/api/v1/admin/tags.py
-- [ ] T033 [P] [US4] Implement SQLAdmin authentication backend with bcrypt password verification in app/admin/auth.py
-- [ ] T034 [US4] Create SQLAdmin model views for Speech, Tag, User, GameSession in app/admin/views.py
-- [ ] T035 [US4] Mount SQLAdmin panel to FastAPI app at /admin in app/main.py
+- [X] T031 [P] [US4] Create admin speech CRUD endpoints with pagination and filters in app/api/v1/admin/speeches.py
+- [X] T032 [P] [US4] Create admin tag CRUD endpoints with speech count in app/api/v1/admin/tags.py
+- [X] T033 [P] [US4] Implement SQLAdmin authentication backend with bcrypt password verification in app/admin/auth.py
+- [X] T034 [US4] Create SQLAdmin model views for Speech, Tag, User, GameSession in app/admin/views.py
+- [X] T035 [US4] Mount SQLAdmin panel to FastAPI app at /admin in app/main.py
 
 ---
 
@@ -238,9 +238,9 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T036 [P] [US5] Create audio upload endpoint: POST /admin/import/audio with multipart handling in app/api/v1/admin/imports.py
-- [ ] T037 [US5] Create CSV import endpoint: POST /admin/import/csv with validation and transaction in app/api/v1/admin/imports.py
-- [ ] T038 [US5] Implement ImportService with audio upload, CSV parsing, and bulk creation logic in app/services/import_service.py
+- [X] T036 [P] [US5] Create audio upload endpoint: POST /admin/import/audio with multipart handling in app/api/v1/admin/imports.py
+- [X] T037 [US5] Create CSV import endpoint: POST /admin/import/csv with validation and transaction in app/api/v1/admin/imports.py
+- [X] T038 [US5] Implement ImportService with audio upload, CSV parsing, and bulk creation logic in app/services/import_service.py
 
 ---
 
@@ -258,19 +258,19 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T039 [P] Implement Redis caching decorator and cache invalidation in app/utils/cache.py
-- [ ] T040 [P] Add rate limiting with SlowAPI to protect endpoints in app/main.py
-- [ ] T041 [P] Set up logging with structlog for JSON output in app/utils/logging.py
-- [ ] T042 [P] Add Prometheus metrics instrumentation in app/main.py
+- [X] T039 [P] Implement Redis caching decorator and cache invalidation in app/utils/cache.py
+- [X] T040 [P] Add rate limiting with SlowAPI to protect endpoints in app/main.py
+- [X] T041 [P] Set up logging with structlog for JSON output in app/utils/logging.py
+- [X] T042 [P] Add Prometheus metrics instrumentation in app/main.py
 - [ ] T043 [P] Write unit tests for services (auth, speech, game, import) with pytest-mock for simple deps and manual test doubles for Azure SDK in tests/unit/
 - [ ] T044 [P] Write unit tests for AudioBufferManager context manager ensuring cleanup on exceptions in tests/unit/utils/test_audio_buffer.py
 - [ ] T045 [P] Write unit tests for typed exception handling (service raises, API converts to HTTP) in tests/unit/api/test_exception_handlers.py
 - [ ] T046 [P] Write integration tests for API endpoints in tests/integration/
 - [ ] T047 [P] Write E2E tests for complete user flows in tests/e2e/
-- [ ] T048 Run security scans with Bandit and Safety
-- [ ] T049 Create production Dockerfile with multi-stage build
-- [ ] T050 Create deployment configuration (K8s manifests or docker-compose.prod.yml) in deploy/
-- [ ] T051 Write API documentation and deployment guide in README.md and docs/
+- [X] T048 Run security scans with Bandit and Safety
+- [X] T049 Create production Dockerfile with multi-stage build
+- [X] T050 Create deployment configuration (K8s manifests or docker-compose.prod.yml) in deploy/
+- [X] T051 Write API documentation and deployment guide in README.md and docs/
 
 ---
 
