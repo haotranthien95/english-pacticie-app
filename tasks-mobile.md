@@ -215,13 +215,13 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M046 [P] [US4] Create user use cases (GetProfile, UpdateProfile, DeleteAccount) in lib/domain/usecases/user/
-- [ ] M047 [P] [US4] Create UserRepository interface and implementation in lib/domain/repositories/ and lib/data/repositories/
-- [ ] M048 [US4] Create ProfileBloc for profile management in lib/presentation/blocs/profile/profile_bloc.dart
-- [ ] M049 [US4] Create SettingsBloc for theme and language in lib/presentation/blocs/profile/settings_bloc.dart
-- [ ] M050 [US4] Create Profile screen with user info and edit button in lib/presentation/screens/profile/profile_screen.dart
-- [ ] M051 [US4] Create Edit Profile screen with form in lib/presentation/screens/profile/edit_profile_screen.dart
-- [ ] M052 [US4] Create Settings screen with theme toggle and language selector in lib/presentation/screens/profile/settings_screen.dart
+- [X] M046 [P] [US4] Create user use cases (GetProfile, UpdateProfile, DeleteAccount) in lib/domain/usecases/user/
+- [X] M047 [P] [US4] Create UserRepository interface and implementation in lib/domain/repositories/ and lib/data/repositories/
+- [X] M048 [US4] Create ProfileBloc for profile management in lib/presentation/blocs/profile/profile_bloc.dart
+- [X] M049 [US4] Create SettingsBloc for theme and language in lib/presentation/blocs/profile/settings_bloc.dart
+- [X] M050 [US4] Create Profile screen with user info and edit button in lib/presentation/screens/profile/profile_screen.dart
+- [X] M051 [US4] Create Edit Profile screen with form in lib/presentation/screens/profile/edit_profile_screen.dart
+- [X] M052 [US4] Create Settings screen with theme toggle and language selector in lib/presentation/screens/profile/settings_screen.dart
 
 ---
 
