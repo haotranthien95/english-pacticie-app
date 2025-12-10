@@ -148,8 +148,8 @@ Foundation ──────┐
 - [X] M026 [US2] Implement game local data source with offline queue and exponential backoff retry (1s, 2s, 4s, 8s) in lib/data/datasources/local/game_local_datasource.dart
 - [X] M027 [US2] Implement game remote data source (tags, speeches, sessions APIs) in lib/data/datasources/remote/game_remote_datasource.dart
 - [X] M028 [US2] Implement GameRepositoryImpl with offline-first strategy in lib/data/repositories/game_repository_impl.dart
-- [ ] M029 [US2] Create GameConfigBloc for game setup screen in lib/presentation/blocs/game/game_config_bloc.dart
-- [ ] M030 [US2] Create Game Config screen with level, type, tag selectors in lib/presentation/screens/game/game_config_screen.dart
+- [X] M029 [US2] Create GameConfigBloc for game setup screen in lib/presentation/blocs/game/game_config_bloc.dart
+- [X] M030 [US2] Create Game Config screen with level, type, tag selectors in lib/presentation/screens/game/game_config_screen.dart
 
 #### Listen-Only Mode
 
