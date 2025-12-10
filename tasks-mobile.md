@@ -99,18 +99,18 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M009 [P] [US1] Create User entity in lib/domain/entities/user.dart
-- [ ] M010 [P] [US1] Create AuthRepository interface in lib/domain/repositories/auth_repository.dart
-- [ ] M011 [P] [US1] Create auth use cases (Login, Register, SocialLogin, Logout, GetCurrentUser) in lib/domain/usecases/auth/
-- [ ] M012 [P] [US1] Create UserModel with JSON serialization in lib/data/models/user_model.dart
-- [ ] M013 [P] [US1] Implement local auth data source (token storage in Hive) in lib/data/datasources/local/auth_local_datasource.dart
-- [ ] M014 [US1] Implement remote auth data source (API calls for register, login, social) in lib/data/datasources/remote/auth_remote_datasource.dart
-- [ ] M015 [US1] Implement Firebase Auth service for OAuth token acquisition (Google/Apple/Facebook) in lib/data/datasources/remote/firebase_auth_service.dart
-- [ ] M016 [US1] Implement AuthRepositoryImpl combining local and remote sources in lib/data/repositories/auth_repository_impl.dart
-- [ ] M017 [US1] Create AuthBloc with events (imperative naming: LoginRequested, not UserLoggedIn) and states for all auth flows in lib/presentation/blocs/auth/auth_bloc.dart
-- [ ] M018 [US1] Create Login screen with email/password form and social buttons in lib/presentation/screens/auth/login_screen.dart
-- [ ] M019 [US1] Create Register screen with email/password/name form in lib/presentation/screens/auth/register_screen.dart
-- [ ] M020 [US1] Create Splash screen with auto-login logic in lib/presentation/screens/auth/splash_screen.dart
+- [X] M009 [P] [US1] Create User entity in lib/domain/entities/user.dart
+- [X] M010 [P] [US1] Create AuthRepository interface in lib/domain/repositories/auth_repository.dart
+- [X] M011 [P] [US1] Create auth use cases (Login, Register, SocialLogin, Logout, GetCurrentUser) in lib/domain/usecases/auth/
+- [X] M012 [P] [US1] Create UserModel with JSON serialization in lib/data/models/user_model.dart
+- [X] M013 [P] [US1] Implement local auth data source (token storage in Hive) in lib/data/datasources/local/auth_local_datasource.dart
+- [X] M014 [US1] Implement remote auth data source (API calls for register, login, social) in lib/data/datasources/remote/auth_remote_datasource.dart
+- [X] M015 [US1] Implement Firebase Auth service for OAuth token acquisition (Google/Apple/Facebook) in lib/data/datasources/remote/firebase_auth_service.dart
+- [X] M016 [US1] Implement AuthRepositoryImpl combining local and remote sources in lib/data/repositories/auth_repository_impl.dart
+- [X] M017 [US1] Create AuthBloc with events (imperative naming: LoginRequested, not UserLoggedIn) and states for all auth flows in lib/presentation/blocs/auth/auth_bloc.dart
+- [X] M018 [US1] Create Login screen with email/password form and social buttons in lib/presentation/screens/auth/login_screen.dart
+- [X] M019 [US1] Create Register screen with email/password/name form in lib/presentation/screens/auth/register_screen.dart
+- [X] M020 [US1] Create Splash screen with auto-login logic in lib/presentation/screens/auth/splash_screen.dart
 
 ---
 

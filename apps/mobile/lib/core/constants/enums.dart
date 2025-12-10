@@ -73,6 +73,21 @@ extension AuthProviderExtension on AuthProvider {
         return 'facebook';
     }
   }
+
+  static AuthProvider fromValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'email':
+        return AuthProvider.email;
+      case 'google':
+        return AuthProvider.google;
+      case 'apple':
+        return AuthProvider.apple;
+      case 'facebook':
+        return AuthProvider.facebook;
+      default:
+        throw ArgumentError('Invalid AuthProvider value: $value');
+    }
+  }
 }
 
 extension SpeechLevelExtension on SpeechLevel {
