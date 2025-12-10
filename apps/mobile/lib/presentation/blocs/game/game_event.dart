@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../core/constants/enums.dart';
 import '../../../domain/entities/speech.dart';
+import '../../../data/datasources/remote/speech_remote_datasource.dart';
 
 /// Events for Game BLoC
 abstract class GameEvent extends Equatable {
@@ -68,4 +69,34 @@ class GameCompletionRequested extends GameEvent {
 /// Event when audio finishes playing
 class AudioPlaybackCompleted extends GameEvent {
   const AudioPlaybackCompleted();
+}
+
+/// Event to start recording audio for pronunciation scoring
+class RecordingStarted extends GameEvent {
+  const RecordingStarted();
+}
+
+/// Event to stop recording and upload audio for scoring
+class RecordingStopped extends GameEvent {
+  const RecordingStopped();
+}
+
+/// Event when pronunciation score is received from API
+class ScoreReceived extends GameEvent {
+  final SpeechScoreResponse scoreResponse;
+
+  const ScoreReceived({required this.scoreResponse});
+
+  @override
+  List<Object?> get props => [scoreResponse];
+}
+
+/// Event to acknowledge score and move to next speech
+class ScoreAcknowledged extends GameEvent {
+  const ScoreAcknowledged();
+}
+
+/// Event to cancel ongoing recording
+class RecordingCancelled extends GameEvent {
+  const RecordingCancelled();
 }

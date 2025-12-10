@@ -3,6 +3,7 @@ import '../../../core/constants/enums.dart';
 import '../../../domain/entities/game_result.dart';
 import '../../../domain/entities/game_session.dart';
 import '../../../domain/entities/speech.dart';
+import '../../../data/datasources/remote/speech_remote_datasource.dart';
 
 /// States for Game BLoC
 abstract class GameState extends Equatable {
@@ -70,6 +71,7 @@ class GameReady extends GameState {
     int? streakCount,
     GameMode? mode,
     bool? isAudioPlaying,
+    bool? isRecording,
   }) {
     return GameReady(
       speeches: speeches ?? this.speeches,
@@ -81,6 +83,41 @@ class GameReady extends GameState {
     );
   }
 }
+
+/// Recording audio for pronunciation scoring
+class GameRecording extends GameState {
+  final GameReady previousState;
+
+  const GameRecording(this.previousState);
+
+  @override
+  List<Object?> get props => [previousState];
+}
+
+/// Uploading audio and waiting for pronunciation score
+class GameTranscribing extends GameState {
+  final GameReady previousState;
+
+  const GameTranscribing(this.previousState);
+
+  @override
+  List<Object?> get props => [previousState];
+}
+
+/// Pronunciation score received and displayed
+class GameScoreReady extends GameState {
+  final GameReady previousState;
+  final SpeechScoreResponse scoreResponse;
+
+  const GameScoreReady({
+    required this.previousState,
+    required this.scoreResponse,
+  });
+
+  @override
+  List<Object?> get props => [previousState, scoreResponse];
+}
+
 
 /// Game is paused
 class GamePaused extends GameState {

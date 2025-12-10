@@ -3,19 +3,19 @@ import 'dart:typed_data';
 import 'package:record/record.dart';
 
 /// Service for recording audio to memory buffer (no file writes)
-/// 
+///
 /// Note: Due to record package limitations, this implementation:
 /// 1. Records to temporary file
 /// 2. Immediately reads bytes into memory
 /// 3. Deletes temporary file
 /// 4. Returns only bytes (never exposes file paths)
-/// 
+///
 /// This provides "memory-only" behavior with immediate cleanup.
 class AudioRecorderService {
   final AudioRecorder _recorder = AudioRecorder();
   Uint8List? _audioBuffer;
   String? _tempFilePath;
-  
+
   /// Maximum buffer size: 10MB
   static const int maxBufferSize = 10 * 1024 * 1024; // 10MB
 
@@ -101,7 +101,7 @@ class AudioRecorderService {
           await File(_tempFilePath!).delete();
         } catch (_) {}
       }
-      
+
       if (e is AudioRecorderException) rethrow;
       throw AudioRecorderException('Failed to stop recording: $e');
     }
@@ -112,7 +112,7 @@ class AudioRecorderService {
     try {
       final path = await _recorder.stop();
       _audioBuffer = null;
-      
+
       // Delete temp file if it exists
       if (path != null) {
         try {
@@ -178,7 +178,7 @@ class AudioRecorderService {
       if (await isRecording()) {
         await cancelRecording();
       }
-      
+
       await _recorder.dispose();
       _audioBuffer = null;
       _tempFilePath = null;
