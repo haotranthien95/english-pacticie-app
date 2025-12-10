@@ -1,6 +1,6 @@
 # Backend Specification
 
-**Version**: 1.1.0  
+**Version**: 1.2.0  
 **Last Updated**: December 10, 2025  
 **Status**: Draft  
 **Constitution Compliance**: v1.0.0
@@ -20,6 +20,8 @@
 - Q: Which speech-to-text provider to implement for MVP? → A: Azure Speech Services only - Built-in pronunciation scoring, fastest MVP
 - Q: Admin panel implementation approach for MVP? → A: SQLAdmin auto-generated admin - FastAPI plugin with automatic UI
 - Q: Which S3-compatible storage service for audio files? → A: Self-hosted MinIO - Open source S3-compatible, full control, higher ops burden
+- Q: Error handling pattern for service methods? → A: Raise typed exceptions (FastAPI catches, converts to HTTP) - More Pythonic than Result types, integrates cleanly with HTTP status codes
+- Q: Audio buffer cleanup mechanism to guarantee deletion on errors? → A: Context manager (with statement) ensures cleanup - Python context managers guarantee cleanup even on exceptions, most reliable for security requirement
 
 ## Overview
 
@@ -138,6 +140,17 @@ tests/
 │   └── test_azure_speech.py     # Azure SDK integration
 └── conftest.py                  # Fixtures, mocks
 ```
+
+**Testing Strategy**:
+- **Mocking Approach**: Use pytest-mock for simple dependencies (HTTP clients, database connections), implement manual test doubles (stubs/fakes) for complex stateful services like Azure Speech SDK
+- **Error Handling**: Service methods raise typed exceptions (e.g., `AuthenticationError`, `SpeechProcessingError`), caught by FastAPI exception handlers
+- **Audio Buffer Cleanup**: All audio processing wrapped in context managers to guarantee cleanup:
+  ```python
+  with AudioBufferManager() as buffer:
+      buffer.write(audio_data)
+      result = await azure_speech.process(buffer)
+      # buffer automatically deleted even if exception occurs
+  ```
 
 **Required Integration Tests**:
 1. Authentication flow: Register → Login → JWT validation → Refresh token

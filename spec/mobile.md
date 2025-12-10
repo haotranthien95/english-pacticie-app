@@ -1,6 +1,6 @@
 # Mobile App Specification - English Learning App
 
-**Version:** 1.1.0  
+**Version:** 1.2.0  
 **Date:** December 10, 2025  
 **Platform:** Flutter (Android, iOS, Tablet)  
 **Status:** Phase 1 (MVP)  
@@ -23,6 +23,10 @@
 - Q: Offline game session data persistence: queue and sync, require online, or local-only? → A: Queue and sync on reconnect - Store completed sessions in Hive, automatically sync to backend when connection restored (ensures no data loss)
 - Q: Tablet layout strategy: responsive scaling, fixed phone layout, or separate tablet app? → A: Responsive scaling with breakpoints - Use MediaQuery to detect screen size, apply different layouts for phone/tablet (7"+/10"+) breakpoints
 - Q: Listen-and-repeat pronunciation feedback display: immediate per-sentence, end-of-session summary, or optional on-demand? → A: Immediate per-sentence feedback - Show pronunciation score after each sentence before advancing to next (best for learning feedback loop)
+- Q: BLoC event naming convention? → A: Imperative naming (events describe commands) - BLoC events represent user intentions/commands (LoginRequested, GameStarted), states represent outcomes (Authenticated, GameLoaded)
+- Q: Offline sync retry strategy when sync fails after reconnection? → A: Exponential backoff: 1s, 2s, 4s, 8s then fail - Balances persistence with UX, failed sessions logged but don't block new gameplay
+- Q: Tablet breakpoint behavior at exactly 600dp? → A: Use tablet layout (>= 600dp) - Material Design spec uses >= 600dp for tablet layouts, consistent with Flutter ecosystem
+- Q: Maximum audio recording buffer size to prevent OOM? → A: 10MB limit (approximately 2 minutes at 64kbps) - Provides 10x safety margin for per-sentence recording while preventing abuse
 
 ---
 
@@ -1555,6 +1559,55 @@ abstract class ApiClient {
 
   @GET('/game/sessions/{id}')
   Future<SessionDetailResponse> getGameDetail(@Path('id') String sessionId);
+  
+  // Speech Scoring (Listen-and-Repeat Mode)
+  @POST('/speech/score')
+  @MultiPart()
+  Future<SpeechScoreResponse> scorePronunciation(
+    @Part(name: 'audio') File audio,
+    @Part(name: 'reference_text') String referenceText,
+    @Part(name: 'language') String language,
+  );
+}
+```
+
+**SpeechScoreResponse Model**:
+```dart
+@JsonSerializable()
+class SpeechScoreResponse {
+  final String recognizedText;
+  final double pronunciationScore;  // 0-100
+  final double? accuracyScore;
+  final double? fluencyScore;
+  final double? completenessScore;
+  final List<WordScore>? wordScores;
+  final String provider;
+
+  SpeechScoreResponse({
+    required this.recognizedText,
+    required this.pronunciationScore,
+    this.accuracyScore,
+    this.fluencyScore,
+    this.completenessScore,
+    this.wordScores,
+    required this.provider,
+  });
+
+  factory SpeechScoreResponse.fromJson(Map<String, dynamic> json) =>
+      _$SpeechScoreResponseFromJson(json);
+  Map<String, dynamic> toJson() => _$SpeechScoreResponseToJson(this);
+}
+
+@JsonSerializable()
+class WordScore {
+  final String word;
+  final double score;
+
+  WordScore({required this.word, required this.score});
+
+  factory WordScore.fromJson(Map<String, dynamic> json) =>
+      _$WordScoreFromJson(json);
+  Map<String, dynamic> toJson() => _$WordScoreToJson(this);
 }
 ```
 
