@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
+from starlette.middleware.sessions import SessionMiddleware
 import logging
 
 from app.config import settings
@@ -65,6 +66,14 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Add session middleware for SQLAdmin authentication
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.jwt_secret_key,
+    session_cookie="admin_session",
+    max_age=3600 * 24,  # 24 hours
 )
 
 
@@ -185,6 +194,7 @@ async def root():
 
 # Import and include routers
 from app.api.v1 import auth, game, speech, users
+from app.api.v1.admin import speeches as admin_speeches, tags as admin_tags
 
 # Mount API v1 routers
 app.include_router(auth.router, prefix="/api/v1")
@@ -192,10 +202,28 @@ app.include_router(game.router, prefix="/api/v1")
 app.include_router(speech.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 
-# Additional routers will be added here as we build features
-# from app.api.v1 import admin
-# app.include_router(admin.router, prefix="/api/v1")
-# ...
+# Mount admin API routers
+app.include_router(admin_speeches.router, prefix="/api/v1")
+app.include_router(admin_tags.router, prefix="/api/v1")
+
+# Mount SQLAdmin panel
+from sqladmin import Admin
+from app.admin.auth import AdminAuth
+from app.admin.views import SpeechAdmin, TagAdmin, UserAdmin, GameSessionAdmin
+
+admin = Admin(
+    app,
+    engine,
+    authentication_backend=AdminAuth(secret_key=settings.jwt_secret_key),
+    title="English Learning Admin",
+    base_url="/admin",
+)
+
+# Add model views to admin panel
+admin.add_view(SpeechAdmin)
+admin.add_view(TagAdmin)
+admin.add_view(UserAdmin)
+admin.add_view(GameSessionAdmin)
 
 
 if __name__ == "__main__":

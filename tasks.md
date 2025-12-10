@@ -210,11 +210,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T031 [P] [US4] Create admin speech CRUD endpoints with pagination and filters in app/api/v1/admin/speeches.py
-- [ ] T032 [P] [US4] Create admin tag CRUD endpoints with speech count in app/api/v1/admin/tags.py
-- [ ] T033 [P] [US4] Implement SQLAdmin authentication backend with bcrypt password verification in app/admin/auth.py
-- [ ] T034 [US4] Create SQLAdmin model views for Speech, Tag, User, GameSession in app/admin/views.py
-- [ ] T035 [US4] Mount SQLAdmin panel to FastAPI app at /admin in app/main.py
+- [X] T031 [P] [US4] Create admin speech CRUD endpoints with pagination and filters in app/api/v1/admin/speeches.py
+- [X] T032 [P] [US4] Create admin tag CRUD endpoints with speech count in app/api/v1/admin/tags.py
+- [X] T033 [P] [US4] Implement SQLAdmin authentication backend with bcrypt password verification in app/admin/auth.py
+- [X] T034 [US4] Create SQLAdmin model views for Speech, Tag, User, GameSession in app/admin/views.py
+- [X] T035 [US4] Mount SQLAdmin panel to FastAPI app at /admin in app/main.py
 
 ---
 
