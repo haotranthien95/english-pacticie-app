@@ -38,7 +38,8 @@ class GameRepositoryImpl implements GameRepository {
         // Fallback to cached tags
         final cachedTags = await localDataSource.getCachedTags();
         if (cachedTags.isEmpty) {
-          return Left(NetworkFailure(message: 'No internet and no cached tags'));
+          return Left(
+              NetworkFailure(message: 'No internet and no cached tags'));
         }
         return Right(cachedTags);
       }

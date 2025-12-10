@@ -13,8 +13,8 @@ class GameConfigScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<GameConfigBloc>()
-        ..add(const TagsLoadRequested()),
+      create: (context) =>
+          getIt<GameConfigBloc>()..add(const TagsLoadRequested()),
       child: const _GameConfigView(),
     );
   }

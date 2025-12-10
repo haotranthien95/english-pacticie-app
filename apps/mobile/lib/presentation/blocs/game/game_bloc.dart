@@ -200,7 +200,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     // Calculate statistics
     final correctCount = currentState.results.where((r) => r.correct).length;
     final incorrectCount = currentState.results.length - correctCount;
-    final isComplete = currentState.currentIndex >= currentState.speeches.length;
+    final isComplete =
+        currentState.currentIndex >= currentState.speeches.length;
 
     // Create game session
     final session = GameSession(
@@ -226,7 +227,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final result = await createSessionUseCase(session);
 
     result.fold(
-      (failure) => emit(GameError('Failed to save session: ${failure.message}')),
+      (failure) =>
+          emit(GameError('Failed to save session: ${failure.message}')),
       (savedSession) => emit(GameCompleted(savedSession)),
     );
   }
@@ -248,7 +250,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
       // Listen for playback completion
       _audioSubscription?.cancel();
-      _audioSubscription = audioPlayerService.playerStateStream.listen((playerState) {
+      _audioSubscription =
+          audioPlayerService.playerStateStream.listen((playerState) {
         if (playerState.processingState == ProcessingState.completed) {
           add(const AudioPlaybackCompleted());
         }

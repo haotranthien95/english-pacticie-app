@@ -155,8 +155,8 @@ Foundation ──────┐
 
 - [X] M031 [P] [US2] Create audio player service using just_audio in lib/data/datasources/local/audio_player_service.dart
 - [X] M032 [P] [US2] Create GameBloc for listen-only mode with imperative swipe events (SwipeLeftRequested, SwipeRightRequested) in lib/presentation/blocs/game/game_bloc.dart
-- [ ] M033 [US2] Create Listen-Only game play screen with swipe cards and streak counter in lib/presentation/screens/game/listen_only_game_screen.dart
-- [ ] M034 [US2] Create game result summary screen with statistics in lib/presentation/screens/game/game_summary_screen.dart
+- [X] M033 [US2] Create Listen-Only game play screen with swipe cards and streak counter in lib/presentation/screens/game/listen_only_game_screen.dart
+- [X] M034 [US2] Create game result summary screen with statistics in lib/presentation/screens/game/game_summary_screen.dart
 
 #### Listen-and-Repeat Mode
 
