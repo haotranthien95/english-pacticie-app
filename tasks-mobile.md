@@ -237,9 +237,9 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M053 [P] Create app router with go_router in lib/core/router/app_router.dart
-- [ ] M054 [P] Implement auth guard for protected routes in lib/core/router/auth_guard.dart
-- [ ] M055 Create home screen with bottom navigation in lib/presentation/screens/home/home_screen.dart
+- [X] M053 [P] Create app router with go_router in lib/core/router/app_router.dart
+- [X] M054 [P] Implement auth guard for protected routes in lib/core/router/auth_guard.dart
+- [X] M055 Create home screen with bottom navigation in lib/presentation/screens/home/home_screen.dart
 
 ---
 
