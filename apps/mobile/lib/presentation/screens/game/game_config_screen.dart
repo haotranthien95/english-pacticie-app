@@ -5,6 +5,8 @@ import '../../../di/injection.dart';
 import '../../blocs/game/game_config_bloc.dart';
 import '../../blocs/game/game_config_event.dart';
 import '../../blocs/game/game_config_state.dart';
+import 'listen_only_game_screen.dart';
+import 'listen_repeat_game_screen.dart';
 
 /// Screen for configuring game settings before starting
 class GameConfigScreen extends StatelessWidget {
@@ -66,14 +68,33 @@ class _GameConfigView extends StatelessWidget {
           }
 
           if (state is GameConfigStarting) {
-            // Navigate to game screen (will be implemented in M033/M039)
+            // Navigate to appropriate game screen based on mode
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              // TODO: Navigate to game screen based on mode
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Starting ${state.mode.value} game...'),
-                ),
-              );
+              if (state.mode == GameMode.listenOnly) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ListenOnlyGameScreen(
+                      mode: state.mode,
+                      level: state.level,
+                      type: state.type,
+                      tagIds: state.selectedTagIds,
+                      count: state.count,
+                    ),
+                  ),
+                );
+              } else if (state.mode == GameMode.listenAndRepeat) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ListenRepeatGameScreen(
+                      mode: state.mode,
+                      level: state.level,
+                      type: state.type,
+                      tagIds: state.selectedTagIds,
+                      count: state.count,
+                    ),
+                  ),
+                );
+              }
             });
             return const Center(child: CircularProgressIndicator());
           }

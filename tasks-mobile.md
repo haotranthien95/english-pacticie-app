@@ -164,8 +164,8 @@ Foundation ──────┐
 - [X] M036 [US2] Create microphone recorder service with memory buffer (no file writes) and 10MB limit validation in lib/data/datasources/local/audio_recorder_service.dart
 - [X] M037 [US2] Implement speech-to-text remote data source (POST /speech/score with audio bytes, returns SpeechScoreResponse) in lib/data/datasources/remote/speech_remote_datasource.dart
 - [X] M038 [US2] Update GameBloc with imperative recording events (RecordingStarted, RecordingStopped, TranscriptionRequested) in lib/presentation/blocs/game/game_bloc.dart
-- [ ] M039 [US2] Create Listen-and-Repeat game screen with record button and pronunciation feedback in lib/presentation/screens/game/listen_repeat_game_screen.dart
-- [ ] M040 [US2] Create pronunciation feedback card with immediate per-sentence scoring display in lib/presentation/widgets/game/pronunciation_feedback_card.dart
+- [X] M039 [US2] Create Listen-and-Repeat game screen with record button and pronunciation feedback in lib/presentation/screens/game/listen_repeat_game_screen.dart
+- [X] M040 [US2] Create pronunciation feedback card with immediate per-sentence scoring display in lib/presentation/widgets/game/pronunciation_feedback_card.dart
 
 ---
 
