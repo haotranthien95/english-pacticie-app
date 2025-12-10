@@ -99,9 +99,8 @@ class AdaptiveContainer extends StatelessWidget {
       color: color,
       child: Center(
         child: Container(
-          constraints: maxWidth != null
-              ? BoxConstraints(maxWidth: maxWidth)
-              : null,
+          constraints:
+              maxWidth != null ? BoxConstraints(maxWidth: maxWidth) : null,
           padding: adaptivePadding,
           child: child,
         ),

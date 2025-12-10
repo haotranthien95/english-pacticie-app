@@ -89,13 +89,16 @@ class _HistoryViewState extends State<_HistoryView> {
           if (state is HistoryLoaded) {
             return RefreshIndicator(
               onRefresh: () async {
-                context.read<HistoryBloc>().add(const SessionsRefreshRequested());
+                context
+                    .read<HistoryBloc>()
+                    .add(const SessionsRefreshRequested());
                 await Future.delayed(const Duration(milliseconds: 500));
               },
               child: Column(
                 children: [
                   // Active filters chips
-                  if (state.hasActiveFilters) _buildActiveFilters(context, state),
+                  if (state.hasActiveFilters)
+                    _buildActiveFilters(context, state),
 
                   // Sessions list
                   Expanded(
@@ -147,9 +150,7 @@ class _HistoryViewState extends State<_HistoryView> {
               label: Text(state.modeFilter!.value),
               deleteIcon: const Icon(Icons.close, size: 18),
               onDeleted: () {
-                context
-                    .read<HistoryBloc>()
-                    .add(const ModeFilterChanged(null));
+                context.read<HistoryBloc>().add(const ModeFilterChanged(null));
               },
             ),
           if (state.levelFilter != null)
@@ -157,9 +158,7 @@ class _HistoryViewState extends State<_HistoryView> {
               label: Text(state.levelFilter!.value),
               deleteIcon: const Icon(Icons.close, size: 18),
               onDeleted: () {
-                context
-                    .read<HistoryBloc>()
-                    .add(const LevelFilterChanged(null));
+                context.read<HistoryBloc>().add(const LevelFilterChanged(null));
               },
             ),
           if (state.startDateFilter != null || state.endDateFilter != null)
@@ -170,9 +169,7 @@ class _HistoryViewState extends State<_HistoryView> {
               )),
               deleteIcon: const Icon(Icons.close, size: 18),
               onDeleted: () {
-                context
-                    .read<HistoryBloc>()
-                    .add(const DateRangeFilterChanged());
+                context.read<HistoryBloc>().add(const DateRangeFilterChanged());
               },
             ),
           TextButton.icon(
@@ -201,7 +198,9 @@ class _HistoryViewState extends State<_HistoryView> {
             ),
             const SizedBox(height: 16),
             Text(
-              hasFilters ? 'No sessions match filters' : 'No practice sessions yet',
+              hasFilters
+                  ? 'No sessions match filters'
+                  : 'No practice sessions yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -420,9 +419,8 @@ class _HistoryViewState extends State<_HistoryView> {
 
   void _showFilterDialog(BuildContext context) {
     final bloc = context.read<HistoryBloc>();
-    final currentState = bloc.state is HistoryLoaded
-        ? bloc.state as HistoryLoaded
-        : null;
+    final currentState =
+        bloc.state is HistoryLoaded ? bloc.state as HistoryLoaded : null;
 
     showModalBottomSheet(
       context: context,

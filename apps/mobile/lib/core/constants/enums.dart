@@ -175,9 +175,6 @@ extension GameModeExtension on GameMode {
     }
   }
 }
-    }
-  }
-}
 
 extension AppLanguageExtension on AppLanguage {
   String get code {

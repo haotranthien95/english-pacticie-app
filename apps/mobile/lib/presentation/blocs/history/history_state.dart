@@ -76,9 +76,8 @@ class HistoryLoaded extends HistoryState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       modeFilter: clearModeFilter ? null : (modeFilter ?? this.modeFilter),
       levelFilter: clearLevelFilter ? null : (levelFilter ?? this.levelFilter),
-      startDateFilter: clearDateFilters
-          ? null
-          : (startDateFilter ?? this.startDateFilter),
+      startDateFilter:
+          clearDateFilters ? null : (startDateFilter ?? this.startDateFilter),
       endDateFilter:
           clearDateFilters ? null : (endDateFilter ?? this.endDateFilter),
     );
