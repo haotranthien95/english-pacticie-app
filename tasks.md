@@ -73,11 +73,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T001 [P] Initialize project scaffold with directory structure, virtual environment, and dependencies in apps/backend/
-- [ ] T002 [P] Configure FastAPI application with CORS, middleware, health check endpoint in app/main.py
-- [ ] T003 [P] Set up SQLAlchemy database connection with session management in app/database.py
-- [ ] T004 Initialize Alembic for database migrations in alembic/
-- [ ] T005 [P] Create docker-compose.yml with PostgreSQL, Redis, MinIO services
+- [X] T001 [P] Initialize project scaffold with directory structure, virtual environment, and dependencies in apps/backend/
+- [X] T002 [P] Configure FastAPI application with CORS, middleware, health check endpoint in app/main.py
+- [X] T003 [P] Set up SQLAlchemy database connection with session management in app/database.py
+- [X] T004 Initialize Alembic for database migrations in alembic/
+- [X] T005 [P] Create docker-compose.yml with PostgreSQL, Redis, MinIO services
 
 ---
 
@@ -93,12 +93,12 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T006 [P] Implement User model with auth_provider enum and indexes in app/models/user.py
-- [ ] T007 [P] Implement Tag model with unique name constraint in app/models/tag.py
-- [ ] T008 [P] Implement Speech model with many-to-many Tag relationship through speech_tags join table in app/models/speech.py
-- [ ] T009 [P] Implement GameSession model with foreign key to User in app/models/game_session.py
-- [ ] T010 [P] Implement GameResult model with foreign keys to GameSession and Speech in app/models/game_result.py
-- [ ] T011 Create database seed script with sample tags, speeches, and test users in scripts/seed_database.py
+- [X] T006 [P] Implement User model with auth_provider enum and indexes in app/models/user.py
+- [X] T007 [P] Implement Tag model with unique name constraint in app/models/tag.py
+- [X] T008 [P] Implement Speech model with many-to-many Tag relationship through speech_tags join table in app/models/speech.py
+- [X] T009 [P] Implement GameSession model with foreign key to User in app/models/game_session.py
+- [X] T010 [P] Implement GameResult model with foreign keys to GameSession and Speech in app/models/game_result.py
+- [X] T011 Create database seed script with sample tags, speeches, and test users in scripts/seed_database.py
 
 ---
 
