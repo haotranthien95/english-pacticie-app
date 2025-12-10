@@ -4,14 +4,23 @@ Main application entry point with CORS, middleware, and exception handlers
 """
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
-import logging
+import time
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 from app.config import settings
 from app.database import engine, Base
+from app.utils.logging import configure_logging, get_logger
+from app.utils.cache import close_redis
 from app.core.exceptions import (
     ApplicationError,
     AuthenticationError,
@@ -22,32 +31,59 @@ from app.core.exceptions import (
     StorageError,
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG if settings.debug else logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Configure structured logging
+configure_logging()
+logger = get_logger(__name__)
+
+# Initialize rate limiter with Redis backend
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["100/minute"],
+    storage_uri=settings.redis_url,
 )
-logger = logging.getLogger(__name__)
+
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    "http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"],
+)
+
+REQUEST_DURATION = Histogram(
+    "http_request_duration_seconds",
+    "HTTP request duration in seconds",
+    ["method", "endpoint"],
+)
+
+DATABASE_OPERATIONS = Counter(
+    "database_operations_total",
+    "Total database operations",
+    ["operation", "table"],
+)
+
+BUSINESS_EVENTS = Counter(
+    "business_events_total",
+    "Total business events",
+    ["event_type"],
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
-    logger.info("Starting up English Learning App API...")
-    logger.info(f"Environment: {settings.environment}")
-    logger.info(f"Debug mode: {settings.debug}")
+    logger.info("startup", environment=settings.environment, debug=settings.debug)
     
     # Create database tables (for development only, use Alembic in production)
     if settings.debug:
-        logger.info("Creating database tables...")
+        logger.info("creating_database_tables")
         Base.metadata.create_all(bind=engine)
     
     yield
     
     # Shutdown
-    logger.info("Shutting down...")
-
+    logger.info("shutting_down")
+    await close_redis()
 
 # Create FastAPI application
 app = FastAPI(
@@ -58,6 +94,13 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,
     lifespan=lifespan
 )
+
+# Attach rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Add rate limiting middleware
+app.add_middleware(SlowAPIMiddleware)
 
 # Configure CORS
 app.add_middleware(
@@ -75,6 +118,52 @@ app.add_middleware(
     session_cookie="admin_session",
     max_age=3600 * 24,  # 24 hours
 )
+
+
+# Request logging and metrics middleware
+@app.middleware("http")
+async def log_requests_and_metrics(request: Request, call_next):
+    """Log all requests and record Prometheus metrics."""
+    start_time = time.time()
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Calculate duration
+    duration = time.time() - start_time
+    
+    # Record Prometheus metrics
+    REQUEST_COUNT.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        status=response.status_code,
+    ).inc()
+    
+    REQUEST_DURATION.labels(
+        method=request.method,
+        endpoint=request.url.path,
+    ).observe(duration)
+    
+    # Log request with structured logging
+    logger.info(
+        "request_completed",
+        method=request.method,
+        path=str(request.url.path),
+        status_code=response.status_code,
+        duration_ms=round(duration * 1000, 2),
+    )
+    
+    return response
+
+# Metrics endpoint for Prometheus
+@app.get("/metrics", tags=["Monitoring"])
+async def metrics():
+    """
+    Prometheus metrics endpoint.
+    
+    Returns metrics in Prometheus format for scraping by monitoring tools.
+    """
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 # Global exception handlers
@@ -147,7 +236,13 @@ async def storage_exception_handler(request: Request, exc: StorageError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors"""
-    logger.error(f"Unexpected error: {exc}", exc_info=True)
+    logger.error(
+        "unexpected_error",
+        error=str(exc),
+        path=str(request.url.path),
+        method=request.method,
+        exc_info=exc,
+    )
     
     if settings.debug:
         return JSONResponse(

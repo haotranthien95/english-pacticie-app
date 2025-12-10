@@ -258,19 +258,19 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T039 [P] Implement Redis caching decorator and cache invalidation in app/utils/cache.py
-- [ ] T040 [P] Add rate limiting with SlowAPI to protect endpoints in app/main.py
-- [ ] T041 [P] Set up logging with structlog for JSON output in app/utils/logging.py
-- [ ] T042 [P] Add Prometheus metrics instrumentation in app/main.py
+- [X] T039 [P] Implement Redis caching decorator and cache invalidation in app/utils/cache.py
+- [X] T040 [P] Add rate limiting with SlowAPI to protect endpoints in app/main.py
+- [X] T041 [P] Set up logging with structlog for JSON output in app/utils/logging.py
+- [X] T042 [P] Add Prometheus metrics instrumentation in app/main.py
 - [ ] T043 [P] Write unit tests for services (auth, speech, game, import) with pytest-mock for simple deps and manual test doubles for Azure SDK in tests/unit/
 - [ ] T044 [P] Write unit tests for AudioBufferManager context manager ensuring cleanup on exceptions in tests/unit/utils/test_audio_buffer.py
 - [ ] T045 [P] Write unit tests for typed exception handling (service raises, API converts to HTTP) in tests/unit/api/test_exception_handlers.py
 - [ ] T046 [P] Write integration tests for API endpoints in tests/integration/
 - [ ] T047 [P] Write E2E tests for complete user flows in tests/e2e/
-- [ ] T048 Run security scans with Bandit and Safety
-- [ ] T049 Create production Dockerfile with multi-stage build
-- [ ] T050 Create deployment configuration (K8s manifests or docker-compose.prod.yml) in deploy/
-- [ ] T051 Write API documentation and deployment guide in README.md and docs/
+- [X] T048 Run security scans with Bandit and Safety
+- [X] T049 Create production Dockerfile with multi-stage build
+- [X] T050 Create deployment configuration (K8s manifests or docker-compose.prod.yml) in deploy/
+- [X] T051 Write API documentation and deployment guide in README.md and docs/
 
 ---
 
