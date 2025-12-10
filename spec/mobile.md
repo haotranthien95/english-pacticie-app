@@ -7,6 +7,18 @@
 
 ---
 
+## Clarifications
+
+### Session 2025-12-10
+
+- Q: Social login integration approach: Firebase SDKs for OAuth, native mobile OAuth flows, or WebView-based? → A: Firebase SDKs for OAuth token acquisition, backend validates and issues JWT - Use Firebase Authentication packages (google_sign_in, sign_in_with_apple) to acquire OAuth tokens on mobile, send tokens to backend /auth/social endpoint for verification and JWT issuance
+- Q: Audio recording lifecycle for listen-and-repeat mode: memory buffer, temp file, or permanent storage? → A: Record to memory buffer only - Stream audio bytes directly to backend API, never write to filesystem (most secure, no cleanup needed)
+- Q: Offline game session data persistence: queue and sync, require online, or local-only? → A: Queue and sync on reconnect - Store completed sessions in Hive, automatically sync to backend when connection restored (ensures no data loss)
+- Q: Tablet layout strategy: responsive scaling, fixed phone layout, or separate tablet app? → A: Responsive scaling with breakpoints - Use MediaQuery to detect screen size, apply different layouts for phone/tablet (7"+/10"+) breakpoints
+- Q: Listen-and-repeat pronunciation feedback display: immediate per-sentence, end-of-session summary, or optional on-demand? → A: Immediate per-sentence feedback - Show pronunciation score after each sentence before advancing to next (best for learning feedback loop)
+
+---
+
 ## Table of Contents
 
 1. [Overview](#overview)

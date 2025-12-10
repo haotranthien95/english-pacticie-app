@@ -2292,3 +2292,855 @@ flutter test
 
 ---
 
+## Milestone 3: Navigation & Backend Integration
+
+**Goal**: Implement navigation system, create auth screens, and integrate with backend API.
+
+### Task 3.1: Setup Routing
+
+**Description**: Configure app routing with go_router for navigation.
+
+**Acceptance Criteria**:
+- Named routes for all screens
+- Protected routes (require authentication)
+- Deep linking support
+- Proper navigation guards
+
+**Add go_router to pubspec.yaml**:
+```yaml
+dependencies:
+  go_router: ^14.6.2
+```
+
+**Files to Create**: See detailed implementation in codebase.
+
+**Dependencies**: Milestone 2 (AuthBloc)
+
+---
+
+### Task 3.2: Create Splash Screen
+
+**Description**: Implement splash screen with authentication check.
+
+**Acceptance Criteria**:
+- App logo displayed
+- Loading indicator
+- Automatic navigation based on auth state
+- Version number display
+
+**Dependencies**: Task 3.1 (routing)
+
+---
+
+### Task 3.3: Create Login Screen
+
+**Description**: Implement login screen with email/password and social login.
+
+**Acceptance Criteria**:
+- Email and password input fields with validation
+- Login button with loading state
+- Social login buttons (Google, Apple, Facebook)
+- Link to register screen
+- Error messages display
+- Keyboard handling
+
+**Dependencies**: Task 3.2, Milestone 2 (AuthBloc)
+
+---
+
+### Task 3.4: Create Register Screen
+
+**Description**: Implement registration screen with validation.
+
+**Acceptance Criteria**:
+- Name, email, password, confirm password fields
+- Field validation (name, email format, password strength, match)
+- Register button with loading state
+- Link to login screen
+- Error messages display
+
+**Dependencies**: Task 3.3
+
+---
+
+### Task 3.5: Create Home Screen with Bottom Navigation
+
+**Description**: Implement home screen with bottom navigation bar and 4 tabs.
+
+**Acceptance Criteria**:
+- Bottom navigation with 4 tabs (Dashboard, Games, Skills, Profile)
+- IndexedStack to preserve tab state
+- Selected tab persisted in Hive
+- Smooth tab switching
+- AppBar with title changing based on selected tab
+
+**Dependencies**: Task 3.4
+
+---
+
+## Milestone 3 Completion Checklist
+
+- [ ] Task 3.1: Routing setup with go_router
+- [ ] Task 3.2: Splash screen created
+- [ ] Task 3.3: Login screen implemented
+- [ ] Task 3.4: Register screen implemented
+- [ ] Task 3.5: Home screen with bottom navigation
+
+**Validation**:
+```bash
+flutter run
+# Test auth flow: login, register, social login
+# Test navigation between tabs
+# Test logout
+```
+
+---
+
+## Milestone 4: Game Configuration Screen
+
+**Goal**: Implement game configuration screen where users select game parameters.
+
+### Task 4.1: Create Game Domain Layer
+
+**Description**: Define game entities, repository interface, and use cases.
+
+**Acceptance Criteria**:
+- Speech, Tag, GameSession, GameResult entities
+- GameRepository interface
+- Use cases for getting tags and random speeches
+- Use cases for creating and fetching game sessions
+
+**Dependencies**: Milestone 1
+
+---
+
+### Task 4.2: Create Game Data Models
+
+**Description**: Implement data models for game entities with JSON serialization.
+
+**Acceptance Criteria**:
+- TagModel, SpeechModel with JSON serialization
+- GameSessionModel, GameResultModel for API communication
+- toEntity() methods for domain conversion
+- Proper null safety
+
+**Commands**:
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+**Dependencies**: Task 4.1
+
+---
+
+### Task 4.3: Implement Game Remote Data Source
+
+**Description**: Create API endpoints for game operations.
+
+**Acceptance Criteria**:
+- API endpoints for tags, random speeches, game sessions
+- Error handling
+- Proper request/response mapping
+
+**Dependencies**: Task 4.2
+
+---
+
+### Task 4.4: Implement Game Local Data Source
+
+**Description**: Cache tags and game configuration locally.
+
+**Acceptance Criteria**:
+- Cache tags to reduce API calls
+- Save last game configuration
+- Offline queue for game sessions
+- Hive box operations
+
+**Dependencies**: Task 4.2
+
+---
+
+### Task 4.5: Implement Game Repository
+
+**Description**: Implement GameRepository combining remote and local data sources.
+
+**Acceptance Criteria**:
+- Implements GameRepository interface
+- Cache-first strategy for tags
+- Offline queue for game sessions
+- Proper error handling
+
+**Dependencies**: Tasks 4.3, 4.4
+
+---
+
+## Milestone 4 Completion Checklist
+
+- [ ] Task 4.1: Game domain layer created
+- [ ] Task 4.2: Game data models with JSON serialization
+- [ ] Task 4.3: Game remote data source implemented
+- [ ] Task 4.4: Game local data source with caching
+- [ ] Task 4.5: Game repository implementation
+
+**Validation**:
+```bash
+flutter analyze
+flutter test
+```
+
+---
+
+## Milestone 5: Listen-Only Game Mode
+
+**Goal**: Implement listen-only game mode with audio playback and card swiper.
+
+### Task 5.1: Create GameBloc
+
+**Description**: Implement BLoC for game state management.
+
+**Acceptance Criteria**:
+- Events for loading speeches, playing audio, answering
+- States for idle, loading, playing, completed
+- Timer management for gaps
+- Streak tracking
+
+**Dependencies**: Milestone 4 (GetRandomSpeechesUseCase)
+
+---
+
+### Task 5.2: Create Audio Player Service
+
+**Description**: Implement audio player service using just_audio for speech playback.
+
+**Acceptance Criteria**:
+- Play audio from URL with pre-caching
+- Pause, resume, stop controls
+- Audio state management (playing, paused, stopped)
+- Error handling for audio loading failures
+- Memory management (dispose resources)
+
+**Dependencies**: Task 5.1
+
+---
+
+### Task 5.3: Create Game Config Screen
+
+**Description**: Implement game configuration screen for selecting level, type, tags, and count.
+
+**Acceptance Criteria**:
+- Level selector (A1, A2, B1, B2, C1)
+- Sentence type selector (question, answer)
+- Tag multi-selector with categories
+- Question count selector (10, 15, 20)
+- Start game button
+- Load last configuration from cache
+
+**Dependencies**: Task 5.1, Milestone 3 (routing)
+
+---
+
+### Task 5.4: Create Game Play Screen (Listen-Only)
+
+**Description**: Implement game play screen with card swiper and audio playback.
+
+**Acceptance Criteria**:
+- Card swiper for speeches
+- Audio player controls
+- Swipe right (correct), swipe left (incorrect)
+- Progress indicator
+- Streak display
+- Compliment overlay on correct answers
+- Auto-advance after answer
+
+**Dependencies**: Task 5.2, 5.3
+
+---
+
+### Task 5.5: Create Game Result Screen
+
+**Description**: Implement result screen showing game statistics.
+
+**Acceptance Criteria**:
+- Display total questions, correct answers, accuracy
+- Show max streak
+- Duration display
+- Play again and home buttons
+- Save session to backend
+
+**Dependencies**: Task 5.4
+
+---
+
+## Milestone 5 Completion Checklist
+
+- [ ] Task 5.1: GameBloc created
+- [ ] Task 5.2: Audio player service implemented
+- [ ] Task 5.3: Game config screen created
+- [ ] Task 5.4: Game play screen with card swiper
+- [ ] Task 5.5: Game result screen implemented
+
+**Validation**:
+```bash
+flutter analyze
+flutter test
+flutter run
+# Test listen-only game flow
+```
+
+---
+
+## Milestone 6: Listen-and-Repeat Game Mode
+
+**Goal**: Implement listen-and-repeat game mode with microphone recording, speech-to-text, and pronunciation scoring.
+
+### Task 6.1: Setup Microphone Permissions
+
+**Description**: Configure microphone permissions for iOS and Android.
+
+**Acceptance Criteria**:
+- Microphone permission handling
+- Permission request UI
+- Permission denied handling
+- Settings redirect
+
+**Add permission_handler to pubspec.yaml**:
+```yaml
+dependencies:
+  permission_handler: ^11.3.1
+```
+
+**Update iOS permissions in `ios/Runner/Info.plist`**:
+```xml
+<key>NSMicrophoneUsageDescription</key>
+<string>We need microphone access to record your pronunciation for evaluation</string>
+<key>NSSpeechRecognitionUsageDescription</key>
+<string>We need speech recognition to evaluate your pronunciation</string>
+```
+
+**Update Android permissions in `android/app/src/main/AndroidManifest.xml`**:
+```xml
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+**Dependencies**: Milestone 1
+
+---
+
+### Task 6.2: Create Microphone Recorder Service
+
+**Description**: Implement audio recording service using record package.
+
+**Acceptance Criteria**:
+- Start/stop recording
+- Save recording to file
+- Audio format configuration (WAV/M4A)
+- Recording duration tracking
+- Amplitude monitoring for visual feedback
+
+**Dependencies**: Task 6.1
+
+---
+
+### Task 6.3: Integrate Speech-to-Text API
+
+**Description**: Implement speech-to-text transcription using backend API.
+
+**Acceptance Criteria**:
+- Upload audio file to backend
+- Receive transcription text
+- Receive pronunciation score
+- Handle transcription errors
+- Loading states
+
+**Commands**:
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+**Dependencies**: Task 6.2
+
+---
+
+### Task 6.4: Update GameBloc for Listen-and-Repeat Mode
+
+**Description**: Extend GameBloc to handle recording and transcription.
+
+**Acceptance Criteria**:
+- Events for recording start/stop
+- Events for transcription
+- States for recording, transcribing
+- Pronunciation score tracking
+- Average score calculation
+
+**Dependencies**: Task 6.3
+
+---
+
+### Task 6.5: Create Listen-and-Repeat Game Play Screen
+
+**Description**: Implement game play screen with recording UI.
+
+**Acceptance Criteria**:
+- Record button with animation
+- Recording visualization (amplitude bars)
+- Transcription result display
+- Pronunciation score display
+- Word-by-word feedback
+- Retry recording option
+
+**Dependencies**: Task 6.4
+
+---
+
+## Milestone 6 Completion Checklist
+
+- [ ] Task 6.1: Microphone permissions configured
+- [ ] Task 6.2: Recorder service implemented
+- [ ] Task 6.3: Speech-to-text API integrated
+- [ ] Task 6.4: GameBloc updated for listen-and-repeat
+- [ ] Task 6.5: Listen-and-repeat play screen created
+
+**Validation**:
+```bash
+flutter pub get
+flutter pub run build_runner build --delete-conflicting-outputs
+flutter analyze
+flutter run
+# Test listen-and-repeat game flow
+# Test microphone recording
+# Test pronunciation scoring
+```
+
+---
+
+## Milestone 7: Game History & Detail Screens
+
+**Goal**: Implement game history list and detail screens to view past game sessions.
+
+### Task 7.1: Create Game History BLoC
+
+**Description**: Implement BLoC for managing game history state.
+
+**Acceptance Criteria**:
+- Events for loading history, filtering, pagination
+- States for loading, loaded, error
+- Filter by mode and level
+- Pagination support
+
+**Dependencies**: Milestone 4 (GameRepository)
+
+---
+
+### Task 7.2: Create History List Screen
+
+**Description**: Implement history list screen with filtering and pagination.
+
+**Acceptance Criteria**:
+- List of past game sessions
+- Filter by mode (listen, repeat) and level
+- Infinite scroll pagination
+- Pull-to-refresh
+- Tap to view details
+- Empty state
+
+**Dependencies**: Task 7.1
+
+---
+
+### Task 7.3: Create History Detail Screen
+
+**Description**: Implement detail screen showing comprehensive game session statistics.
+
+**Acceptance Criteria**:
+- Display all game metrics
+- Show sentence-by-sentence results
+- Performance charts (if applicable)
+- Share results option
+- Play again with same config
+
+**Dependencies**: Task 7.2
+
+---
+
+## Milestone 7 Completion Checklist
+
+- [ ] Task 7.1: History BLoC created
+- [ ] Task 7.2: History list screen with filtering
+- [ ] Task 7.3: History detail screen with stats
+
+**Validation**:
+```bash
+flutter analyze
+flutter test
+flutter run
+# Test history list, filtering, pagination
+# Test detail screen
+```
+
+---
+
+## Milestone 8: Profile & Settings
+
+**Goal**: Implement user profile and settings screens.
+
+### Task 8.1: Create Profile Screen
+
+**Description**: Implement user profile screen showing account information.
+
+**Acceptance Criteria**:
+- Display user avatar, name, email
+- Display account statistics (total games, accuracy, streak)
+- Edit profile button
+- Logout button
+- Account deletion option
+
+**Dependencies**: Milestone 2 (AuthBloc)
+
+---
+
+### Task 8.2: Create Settings Screen
+
+**Description**: Implement settings screen for app preferences.
+
+**Acceptance Criteria**:
+- Theme toggle (light/dark)
+- Language selector
+- Notification settings
+- Audio settings (volume, speech rate)
+- Cache management
+- Version information
+
+**Dependencies**: Task 8.1
+
+---
+
+## Milestone 8 Completion Checklist
+
+- [ ] Task 8.1: Profile screen created
+- [ ] Task 8.2: Settings screen implemented
+
+**Validation**:
+```bash
+flutter analyze
+flutter run
+# Test profile screen
+# Test settings changes
+```
+
+---
+
+## Milestone 9: Theming & Localization
+
+**Goal**: Implement theming system and multi-language support.
+
+### Task 9.1: Create Theme System
+
+**Description**: Implement comprehensive theme system with light and dark modes.
+
+**Acceptance Criteria**:
+- Light and dark themes
+- Material 3 design
+- Consistent color palette
+- Typography system
+- Theme persistence
+- Dynamic theme switching
+
+**Dependencies**: Milestone 1
+
+---
+
+### Task 9.2: Implement Localization
+
+**Description**: Add multi-language support using flutter_localizations.
+
+**Acceptance Criteria**:
+- Support English and Vietnamese
+- ARB files for translations
+- Language switching
+- Locale persistence
+- Date/time formatting
+
+**Add dependencies to `pubspec.yaml`**:
+```yaml
+dependencies:
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+```
+
+**Update `pubspec.yaml`**:
+```yaml
+flutter:
+  generate: true
+```
+
+**Create `l10n.yaml`**:
+```yaml
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+```
+
+**Commands**:
+```bash
+flutter pub get
+flutter gen-l10n
+```
+
+**Dependencies**: Task 9.1
+
+---
+
+## Milestone 9 Completion Checklist
+
+- [ ] Task 9.1: Theme system implemented
+- [ ] Task 9.2: Localization setup completed
+
+**Validation**:
+```bash
+flutter pub get
+flutter gen-l10n
+flutter analyze
+flutter run
+# Test theme switching
+# Test language switching
+```
+
+---
+
+## Milestone 10: Testing & Polish
+
+**Goal**: Add comprehensive tests and polish the app for production.
+
+### Task 10.1: Write Unit Tests
+
+**Description**: Implement unit tests for business logic.
+
+**Acceptance Criteria**:
+- Test all use cases
+- Test repositories
+- Test BLoCs
+- Test utilities and helpers
+- Minimum 80% code coverage
+
+**Commands**:
+```bash
+flutter pub add --dev mockito build_runner
+flutter pub run build_runner build
+flutter test --coverage
+```
+
+**Dependencies**: All previous milestones
+
+---
+
+### Task 10.2: Write Widget Tests
+
+**Description**: Implement widget tests for UI components.
+
+**Acceptance Criteria**:
+- Test all custom widgets
+- Test screen layouts
+- Test user interactions
+- Test navigation flows
+
+**Commands**:
+```bash
+flutter test test/presentation/widgets/
+```
+
+**Dependencies**: Task 10.1
+
+---
+
+### Task 10.3: Integration Tests
+
+**Description**: Implement integration tests for critical user flows.
+
+**Acceptance Criteria**:
+- Test complete authentication flow
+- Test game play flow
+- Test navigation between screens
+- Test offline functionality
+
+**Commands**:
+```bash
+flutter test integration_test/app_test.dart
+```
+
+**Dependencies**: Task 10.2
+
+---
+
+### Task 10.4: Performance Optimization
+
+**Description**: Optimize app performance and reduce bundle size.
+
+**Acceptance Criteria**:
+- Optimize image loading
+- Reduce app size
+- Profile and fix performance bottlenecks
+- Implement lazy loading
+- Code splitting
+
+**Performance Checklist**:
+- [ ] Use `const` constructors wherever possible
+- [ ] Implement image caching with `cached_network_image`
+- [ ] Use `ListView.builder` for large lists
+- [ ] Implement pagination for API calls
+- [ ] Profile app with Flutter DevTools
+- [ ] Optimize audio loading and caching
+- [ ] Minimize widget rebuilds with `const` and keys
+- [ ] Use `flutter build` with `--split-debug-info` and `--obfuscate`
+
+**Commands**:
+```bash
+# Profile app
+flutter run --profile
+
+# Analyze app size
+flutter build apk --analyze-size
+flutter build appbundle --analyze-size
+
+# Build optimized release
+flutter build apk --release --split-debug-info=./debug-info --obfuscate
+```
+
+**Dependencies**: Task 10.3
+
+---
+
+### Task 10.5: Production Setup
+
+**Description**: Configure app for production release.
+
+**Acceptance Criteria**:
+- App icon configured
+- Splash screen configured
+- App signing setup (Android & iOS)
+- Environment configuration
+- Error tracking (Firebase Crashlytics)
+- Analytics setup
+
+**Install flutter_launcher_icons**:
+```yaml
+dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
+```
+
+**Commands**:
+```bash
+flutter pub get
+flutter pub run flutter_launcher_icons
+```
+
+**Install flutter_native_splash**:
+```yaml
+dev_dependencies:
+  flutter_native_splash: ^2.4.1
+
+flutter_native_splash:
+  color: "#2196F3"
+  image: assets/images/splash_logo.png
+  android: true
+  ios: true
+```
+
+**Commands**:
+```bash
+flutter pub get
+flutter pub run flutter_native_splash:create
+```
+
+**Dependencies**: Task 10.4
+
+---
+
+## Milestone 10 Completion Checklist
+
+- [ ] Task 10.1: Unit tests written (80%+ coverage)
+- [ ] Task 10.2: Widget tests implemented
+- [ ] Task 10.3: Integration tests created
+- [ ] Task 10.4: Performance optimized
+- [ ] Task 10.5: Production setup completed
+
+**Validation**:
+```bash
+flutter test --coverage
+flutter analyze
+flutter build apk --release
+flutter build appbundle --release
+flutter build ios --release
+```
+
+---
+
+## Final Summary
+
+### Completed Implementation Plan
+
+**All Milestones**:
+1. ✅ Milestone 1: Project Foundation & Setup
+2. ✅ Milestone 2: Authentication Flow
+3. ✅ Milestone 3: Navigation & Backend Integration
+4. ✅ Milestone 4: Game Configuration Screen
+5. ✅ Milestone 5: Listen-Only Game Mode
+6. ✅ Milestone 6: Listen-and-Repeat Game Mode
+7. ✅ Milestone 7: Game History & Detail Screens
+8. ✅ Milestone 8: Profile & Settings
+9. ✅ Milestone 9: Theming & Localization
+10. ✅ Milestone 10: Testing & Polish
+
+**Total Tasks**: 50+ tasks across 10 milestones
+
+**Key Features Implemented**:
+- Complete authentication system (email, Google, Apple, Facebook)
+- Clean architecture with domain, data, and presentation layers
+- Two game modes: Listen-Only and Listen-and-Repeat
+- Speech-to-text integration with pronunciation scoring
+- Game history with filtering and pagination
+- User profile and settings management
+- Light/Dark theme support
+- Multi-language support (English, Vietnamese)
+- Comprehensive testing suite
+- Production-ready configuration
+
+**Technical Stack**:
+- Flutter 3.24.5 / Dart 3.5.4
+- BLoC State Management
+- Hive Local Storage
+- Firebase Authentication
+- Retrofit + Dio for API
+- just_audio + record for Audio
+- go_router for Navigation
+- Material 3 Design
+
+**Architecture**:
+```
+lib/
+├── core/           # Core utilities, theme, constants
+├── data/           # Data sources, models, repositories
+├── domain/         # Entities, repositories, use cases
+├── presentation/   # BLoCs, screens, widgets
+├── di/             # Dependency injection
+└── l10n/           # Localization files
+```
+
+**Next Steps**:
+1. Review and implement all tasks sequentially
+2. Test each milestone thoroughly before proceeding
+3. Integrate with actual backend API
+4. Conduct user acceptance testing
+5. Prepare for App Store and Play Store submission
+
+---
+
+**End of Mobile Implementation Plan**

@@ -4,6 +4,16 @@
 **Last Updated**: December 10, 2025  
 **Status**: Draft
 
+## Clarifications
+
+### Session 2025-12-10
+
+- Q: Authentication implementation: Firebase Auth or JWT-based custom? → A: JWT-based custom implementation
+- Q: User audio recording storage lifecycle for pronunciation scoring? → A: Temporary storage with immediate deletion - Save to temp storage, process, delete within same request
+- Q: Which speech-to-text provider to implement for MVP? → A: Azure Speech Services only - Built-in pronunciation scoring, fastest MVP
+- Q: Admin panel implementation approach for MVP? → A: SQLAdmin auto-generated admin - FastAPI plugin with automatic UI
+- Q: Which S3-compatible storage service for audio files? → A: Self-hosted MinIO - Open source S3-compatible, full control, higher ops burden
+
 ## Overview
 
 This document specifies the backend API and admin system for the English Learning App. The backend provides RESTful JSON APIs for mobile client operations, admin content management tools, and integrations with speech-to-text services for pronunciation scoring.
@@ -11,8 +21,9 @@ This document specifies the backend API and admin system for the English Learnin
 **Technology Stack**:
 - **Framework**: FastAPI (Python 3.10+)
 - **Database**: PostgreSQL 12+
-- **Storage**: S3-compatible object storage for audio files
-- **Authentication**: Firebase Auth or JWT-based custom implementation
+- **Storage**: MinIO (self-hosted S3-compatible object storage) for audio files
+- **Authentication**: JWT-based custom implementation with HS256 algorithm
+- **Speech-to-Text**: Azure Cognitive Services Speech SDK with pronunciation assessment
 
 ---
 
@@ -233,7 +244,7 @@ Authenticate user with email/password.
 
 ### POST /auth/social
 
-Login or register with social OAuth provider.
+Login or register with social OAuth provider (backend verifies OAuth token and issues JWT).
 
 **Request Body**:
 ```json
@@ -246,6 +257,12 @@ Login or register with social OAuth provider.
 
 **Supported Providers**: `google`, `apple`, `facebook`
 
+**Backend Flow**:
+1. Verify OAuth token with provider's API (Google/Apple/Facebook token validation endpoint)
+2. Extract user email and provider ID from verified token
+3. Create new user account if doesn't exist, or retrieve existing user
+4. Generate and return JWT access/refresh tokens
+
 **Response** (200 OK):
 ```json
 {
@@ -257,6 +274,7 @@ Login or register with social OAuth provider.
 ```
 
 **Notes**: 
+- Backend validates OAuth tokens directly (no Firebase dependency)
 - If user doesn't exist, creates new account
 - If user exists, returns existing account tokens
 
@@ -1076,10 +1094,10 @@ curl -X POST http://localhost:8000/api/v1/admin/import/csv \
 
 ### Architecture
 
-The speech-to-text integration uses an **Abstract Provider Interface** to allow switching between different vendors (Azure, Google, AWS, OpenAI) without changing application code.
+The speech-to-text integration uses Azure Cognitive Services Speech SDK for MVP. An **Abstract Provider Interface** is designed to allow switching to alternative vendors (Google, AWS, OpenAI) in future phases without changing application code.
 
 ```python
-# Abstract interface
+# Abstract interface (for future extensibility)
 class SpeechProvider(ABC):
     @abstractmethod
     async def transcribe_and_score(
@@ -1121,9 +1139,9 @@ class WordScore:
     error_type: Optional[str] = None  # "mispronunciation", "omission", etc.
 ```
 
-### Provider Implementations
+### MVP Implementation: Azure Speech Services Provider
 
-#### 1. Azure Speech Services Provider
+#### Azure Speech Services Provider (Primary)
 
 ```python
 class AzureSpeechProvider(SpeechProvider):
@@ -1169,178 +1187,14 @@ AZURE_SPEECH_REGION=eastus
 
 ---
 
-#### 2. Google Cloud Speech-to-Text Provider
+### Alternative Providers (Future Consideration)
 
-```python
-class GoogleSpeechProvider(SpeechProvider):
-    """
-    Uses Google Cloud Speech-to-Text API.
-    Note: No built-in pronunciation scoring, uses custom algorithm.
-    """
-    
-    async def transcribe_and_score(
-        self,
-        audio_data: bytes,
-        reference_text: str,
-        language: str = "en-US"
-    ) -> ScoringResult:
-        # Call Google Speech API for transcription
-        client = speech.SpeechClient()
-        audio = speech.RecognitionAudio(content=audio_data)
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.MP3,
-            language_code=language
-        )
-        
-        response = await client.recognize(config=config, audio=audio)
-        recognized = response.results[0].alternatives[0].transcript
-        
-        # Calculate pronunciation score using similarity algorithm
-        score = self._calculate_similarity_score(
-            recognized, 
-            reference_text
-        )
-        
-        return ScoringResult(
-            recognized_text=recognized,
-            pronunciation_score=score,
-            confidence=response.results[0].alternatives[0].confidence,
-            provider_name="google"
-        )
-    
-    def _calculate_similarity_score(self, recognized: str, reference: str) -> float:
-        """
-        Uses Levenshtein distance or Jaro-Winkler similarity.
-        Score = 100 * (1 - normalized_distance)
-        """
-        from Levenshtein import distance
-        
-        normalized = distance(recognized.lower(), reference.lower()) / max(len(recognized), len(reference))
-        return max(0, 100 * (1 - normalized))
-```
+For future scalability or cost optimization, the abstract interface supports alternative providers:
+- **Google Cloud Speech-to-Text**: Requires custom pronunciation scoring algorithm
+- **AWS Transcribe**: Requires custom pronunciation scoring algorithm  
+- **Whisper (OpenAI)**: Can be self-hosted or API-based, requires custom scoring
 
-**Configuration**:
-```env
-SPEECH_PROVIDER=google
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
-```
-
----
-
-#### 3. AWS Transcribe Provider
-
-```python
-class AWSTranscribeProvider(SpeechProvider):
-    """
-    Uses AWS Transcribe for speech-to-text.
-    Custom pronunciation scoring algorithm.
-    """
-    
-    async def transcribe_and_score(
-        self,
-        audio_data: bytes,
-        reference_text: str,
-        language: str = "en-US"
-    ) -> ScoringResult:
-        # Upload audio to S3
-        s3_client.put_object(Bucket=bucket, Key=key, Body=audio_data)
-        
-        # Start transcription job
-        transcribe_client.start_transcription_job(...)
-        
-        # Wait for completion (async)
-        result = await self._wait_for_job(job_name)
-        
-        recognized = result['Transcript']
-        score = self._calculate_similarity_score(recognized, reference_text)
-        
-        return ScoringResult(
-            recognized_text=recognized,
-            pronunciation_score=score,
-            provider_name="aws"
-        )
-```
-
-**Configuration**:
-```env
-SPEECH_PROVIDER=aws
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
-AWS_REGION=us-east-1
-```
-
----
-
-#### 4. Whisper (OpenAI) Provider
-
-```python
-class WhisperProvider(SpeechProvider):
-    """
-    Uses OpenAI Whisper model (can be self-hosted or API).
-    Custom pronunciation scoring.
-    """
-    
-    async def transcribe_and_score(
-        self,
-        audio_data: bytes,
-        reference_text: str,
-        language: str = "en-US"
-    ) -> ScoringResult:
-        # Call Whisper API or local model
-        if self.use_api:
-            response = await openai.Audio.transcribe(
-                model="whisper-1",
-                file=audio_data
-            )
-            recognized = response['text']
-        else:
-            # Use local Whisper model
-            model = whisper.load_model("base")
-            result = model.transcribe(audio_data)
-            recognized = result['text']
-        
-        score = self._calculate_similarity_score(recognized, reference_text)
-        
-        return ScoringResult(
-            recognized_text=recognized,
-            pronunciation_score=score,
-            provider_name="whisper"
-        )
-```
-
-**Configuration**:
-```env
-SPEECH_PROVIDER=whisper
-WHISPER_MODE=api  # or "local"
-OPENAI_API_KEY=your_key  # if using API
-```
-
----
-
-### Provider Factory
-
-```python
-class SpeechProviderFactory:
-    """Factory to create speech provider based on configuration."""
-    
-    @staticmethod
-    def create(provider_name: str) -> SpeechProvider:
-        providers = {
-            "azure": AzureSpeechProvider,
-            "google": GoogleSpeechProvider,
-            "aws": AWSTranscribeProvider,
-            "whisper": WhisperProvider
-        }
-        
-        if provider_name not in providers:
-            raise ValueError(f"Unknown provider: {provider_name}")
-        
-        return providers[provider_name]()
-
-# Usage in endpoint
-provider = SpeechProviderFactory.create(settings.SPEECH_PROVIDER)
-result = await provider.transcribe_and_score(audio_data, reference_text)
-```
+See appendix for implementation details of alternative providers.
 
 ---
 
@@ -1351,24 +1205,12 @@ result = await provider.transcribe_and_score(audio_data, reference_text)
 from pydantic import BaseSettings
 
 class Settings(BaseSettings):
-    # Speech Provider Selection
-    SPEECH_PROVIDER: str = "azure"  # azure, google, aws, whisper
+    # Speech Provider Selection (MVP: Azure only)
+    SPEECH_PROVIDER: str = "azure"
     
-    # Azure Settings
-    AZURE_SPEECH_KEY: Optional[str] = None
-    AZURE_SPEECH_REGION: Optional[str] = None
-    
-    # Google Settings
-    GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = None
-    
-    # AWS Settings
-    AWS_ACCESS_KEY_ID: Optional[str] = None
-    AWS_SECRET_ACCESS_KEY: Optional[str] = None
-    AWS_REGION: Optional[str] = None
-    
-    # Whisper Settings
-    WHISPER_MODE: str = "api"  # api or local
-    OPENAI_API_KEY: Optional[str] = None
+    # Azure Settings (Required)
+    AZURE_SPEECH_KEY: str
+    AZURE_SPEECH_REGION: str
     
     # Timeouts
     SPEECH_API_TIMEOUT: int = 10  # seconds
@@ -1430,17 +1272,18 @@ except SpeechProviderError as e:
 
 ## Admin Panel Implementation
 
-### Technology Options
+### MVP Approach: FastAPI + SQLAdmin
 
-#### Option 1: FastAPI + SQLAdmin (Recommended for MVP)
+**Selected for MVP** due to rapid development, automatic UI generation, and minimal maintenance.
 
-**Pros**:
-- Quick setup (plug-and-play)
-- Automatic CRUD UI generation
-- Built-in authentication
-- Works directly with SQLAlchemy models
+**Benefits**:
+- Quick setup (< 1 day implementation)
+- Automatic CRUD UI generation from SQLAlchemy models
+- Built-in authentication support
+- Zero frontend code to maintain
+- Works directly with existing database models
 
-**Setup**:
+**Implementation**:
 ```python
 from sqladmin import Admin, ModelView
 from fastapi import FastAPI
@@ -1452,28 +1295,39 @@ class SpeechAdmin(ModelView, model=Speech):
     column_list = [Speech.id, Speech.text, Speech.level, Speech.type]
     column_searchable_list = [Speech.text]
     column_filters = [Speech.level, Speech.type]
+    column_sortable_list = [Speech.level, Speech.created_at]
+    can_create = True
+    can_edit = True
+    can_delete = True
 
 class TagAdmin(ModelView, model=Tag):
-    column_list = [Tag.id, Tag.name, Tag.category]
+    column_list = [Tag.id, Tag.name, Tag.category, Tag.created_at]
+    column_searchable_list = [Tag.name]
+    column_filters = [Tag.category]
+
+class UserAdmin(ModelView, model=User):
+    column_list = [User.id, User.email, User.name, User.auth_provider, User.created_at]
+    column_searchable_list = [User.email, User.name]
+    column_filters = [User.auth_provider]
+    can_create = False  # Users created via API only
+    can_edit = True
+    can_delete = True
+
+class GameSessionAdmin(ModelView, model=GameSession):
+    column_list = [GameSession.id, GameSession.user_id, GameSession.mode, GameSession.level, GameSession.completed_at]
+    column_filters = [GameSession.mode, GameSession.level]
+    column_sortable_list = [GameSession.completed_at]
+    can_create = False  # Sessions created via API only
+    can_edit = False
+    can_delete = True
 
 admin.add_view(SpeechAdmin)
 admin.add_view(TagAdmin)
+admin.add_view(UserAdmin)
+admin.add_view(GameSessionAdmin)
 ```
 
-**Access**: `http://localhost:8000/admin`
-
----
-
-#### Option 2: Custom React Admin Panel (Future Phase)
-
-**Pros**:
-- Full UI/UX control
-- Better user experience for complex workflows
-- Can integrate advanced features (bulk operations, analytics dashboards)
-
-**Stack**:
-- Frontend: React + React Admin or Refine framework
-- Backend: FastAPI provides JSON APIs (already defined above)
+**Admin URL**: `http://localhost:8000/admin`
 
 ---
 
@@ -1482,6 +1336,9 @@ admin.add_view(TagAdmin)
 ```python
 from sqladmin.authentication import AuthenticationBackend
 from fastapi import Request
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AdminAuth(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
@@ -1489,11 +1346,11 @@ class AdminAuth(AuthenticationBackend):
         username = form.get("username")
         password = form.get("password")
         
-        # Verify against admin user table
-        admin = await verify_admin_credentials(username, password)
-        if admin:
-            request.session["admin_id"] = admin.id
-            return True
+        # Verify against environment variables or admin user table
+        if username == settings.ADMIN_USERNAME:
+            if pwd_context.verify(password, settings.ADMIN_PASSWORD_HASH):
+                request.session["admin_user"] = username
+                return True
         return False
     
     async def logout(self, request: Request) -> bool:
@@ -1501,10 +1358,31 @@ class AdminAuth(AuthenticationBackend):
         return True
     
     async def authenticate(self, request: Request) -> bool:
-        return "admin_id" in request.session
+        return "admin_user" in request.session
 
-admin = Admin(app, engine, authentication_backend=AdminAuth("secret-key"))
+admin = Admin(
+    app, 
+    engine, 
+    authentication_backend=AdminAuth(secret_key=settings.JWT_SECRET_KEY)
+)
 ```
+
+**Security Notes**:
+- Admin credentials stored in environment variables
+- Password hashed with bcrypt
+- Session-based authentication for admin panel
+- Separate from user JWT authentication
+
+---
+
+### Future Enhancement Option: Custom React Admin Panel
+
+For future phases requiring advanced UX, analytics dashboards, or complex workflows:
+- Frontend: React + React Admin or Refine framework
+- Backend: Use existing FastAPI JSON APIs
+- Benefits: Full UI/UX control, advanced features, better user experience
+
+**Not included in MVP** to prioritize mobile app development.
 
 ---
 
@@ -1560,10 +1438,10 @@ CREATE INDEX idx_game_result_speech_id ON game_results(speech_id);
 - Add audit logging for all admin actions (who, what, when)
 
 ### Data Privacy
-- Do NOT store user audio recordings after processing (privacy requirement)
+- User audio recordings: Save to temporary filesystem during request processing, delete immediately after STT provider returns result (within same request context)
 - Implement user data deletion within 30 days of account deletion request
 - Encrypt sensitive data at rest (database encryption)
-- Use signed URLs with expiration for audio file access
+- Use signed URLs with expiration for audio file access (reference audio only, not user recordings)
 
 ---
 
@@ -1581,10 +1459,17 @@ CREATE INDEX idx_game_result_speech_id ON game_results(speech_id);
 - Use database-level randomization for speech selection (`ORDER BY RANDOM()`)
 
 ### Audio Delivery
-- Use CDN (CloudFront, Cloudflare) for audio files
-- Generate signed URLs on-demand with 1-hour expiration
+- MinIO serves audio files with signed URLs (1-hour expiration)
+- Configure MinIO with nginx reverse proxy for CDN-like caching
 - Store audio in optimized format: MP3 64kbps (sufficient for speech)
-- Implement pre-signed URL caching to reduce S3 API calls
+- Implement MinIO SDK pre-signed URL caching to reduce API calls
+- Consider adding Cloudflare in front of MinIO for global CDN if needed
+
+### MinIO-Specific Optimizations
+- Use MinIO's built-in lifecycle policies for temporary file cleanup
+- Enable MinIO versioning for admin content rollback capability
+- Configure MinIO bucket policies for public read access to audio files (signed URLs)
+- Set up MinIO distributed mode (4+ nodes) for high availability in production
 
 ### Speech Provider Optimization
 - Set timeout: 10 seconds max for speech-to-text calls
@@ -1605,11 +1490,11 @@ CREATE INDEX idx_game_result_speech_id ON game_results(speech_id);
          │ HTTPS
          ▼
 ┌─────────────────┐      ┌──────────────┐
-│   Load Balancer │─────▶│   CDN        │
-│    (ALB/Nginx)  │      │ (Audio Files)│
-└────────┬────────┘      └──────────────┘
-         │
-         ▼
+│   Load Balancer │─────▶│ Nginx/CDN    │
+│    (ALB/Nginx)  │      │ (Optional)   │
+└────────┬────────┘      └──────┬───────┘
+         │                      │
+         ▼                      ▼
 ┌─────────────────┐      ┌──────────────┐
 │  FastAPI App    │─────▶│  PostgreSQL  │
 │  (Container)    │      │  (Primary)   │
@@ -1620,10 +1505,15 @@ CREATE INDEX idx_game_result_speech_id ON game_results(speech_id);
 └────────┬────────┘      │  (Cache)     │
          │               └──────────────┘
          │
+         ├──────────────▶┌──────────────┐
+         │               │  MinIO       │
+         │               │  (Storage)   │
+         │               └──────────────┘
+         │
          ▼
 ┌─────────────────┐
 │  Speech Provider│
-│  (Azure/Google) │
+│  (Azure Speech) │
 └─────────────────┘
 ```
 
@@ -1631,7 +1521,256 @@ CREATE INDEX idx_game_result_speech_id ON game_results(speech_id);
 - **Container**: Docker + Kubernetes or AWS ECS
 - **Platform**: AWS (Elastic Beanstalk), Google Cloud Run, or DigitalOcean App Platform
 - **Database**: Managed PostgreSQL (AWS RDS, Google Cloud SQL)
-- **Storage**: AWS S3, DigitalOcean Spaces, or Cloudflare R2
+- **Storage**: Self-hosted MinIO (S3-compatible) - requires dedicated server/VM for object storage
+
+---
+
+### MinIO Deployment Guide
+
+#### Docker Compose Setup (Development)
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console UI
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_admin_password
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-create-bucket:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set myminio http://minio:9000 minio_admin minio_admin_password) do echo 'Waiting for MinIO...' && sleep 1; done;
+      /usr/bin/mc mb myminio/englishapp-audio --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/englishapp-audio;
+      exit 0;
+      "
+
+volumes:
+  minio_data:
+```
+
+**Access MinIO Console**: `http://localhost:9001` (username: `minio_admin`, password: `minio_admin_password`)
+
+---
+
+#### Production Deployment (Kubernetes/VPS)
+
+**Option 1: Single Node (Small Scale)**
+```bash
+# Install MinIO on Ubuntu/Debian VPS
+wget https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod +x minio
+sudo mv minio /usr/local/bin/
+
+# Create systemd service
+sudo tee /etc/systemd/system/minio.service > /dev/null <<EOF
+[Unit]
+Description=MinIO
+After=network.target
+
+[Service]
+Type=notify
+User=minio
+Group=minio
+Environment="MINIO_ROOT_USER=admin"
+Environment="MINIO_ROOT_PASSWORD=secure_password_here"
+ExecStart=/usr/local/bin/minio server /mnt/data --console-address ":9001"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable minio
+sudo systemctl start minio
+```
+
+**Option 2: Distributed Mode (High Availability)**
+
+Requires 4+ nodes for erasure coding protection:
+```bash
+# On each node, start MinIO with distributed configuration
+minio server \
+  http://node{1...4}/mnt/disk{1...4} \
+  --console-address ":9001"
+```
+
+---
+
+#### Nginx Reverse Proxy Configuration
+
+```nginx
+# /etc/nginx/sites-available/minio
+upstream minio_backend {
+    server 127.0.0.1:9000;
+}
+
+server {
+    listen 80;
+    server_name storage.englishapp.com;
+    
+    # Redirect to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name storage.englishapp.com;
+    
+    ssl_certificate /etc/letsencrypt/live/storage.englishapp.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/storage.englishapp.com/privkey.pem;
+    
+    # Proxy settings
+    client_max_body_size 100M;
+    
+    location / {
+        proxy_pass http://minio_backend;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket support (for console)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # Timeouts
+        proxy_connect_timeout 300;
+        proxy_send_timeout 300;
+        proxy_read_timeout 300;
+    }
+}
+```
+
+---
+
+#### Python SDK Integration
+
+```python
+# Install MinIO SDK
+# pip install minio
+
+from minio import Minio
+from datetime import timedelta
+import os
+
+class MinIOStorage:
+    def __init__(self):
+        self.client = Minio(
+            endpoint=os.getenv("S3_ENDPOINT_URL", "localhost:9000").replace("http://", "").replace("https://", ""),
+            access_key=os.getenv("S3_ACCESS_KEY"),
+            secret_key=os.getenv("S3_SECRET_KEY"),
+            secure=os.getenv("S3_USE_SSL", "false").lower() == "true"
+        )
+        self.bucket_name = os.getenv("S3_BUCKET_NAME", "englishapp-audio")
+        
+        # Ensure bucket exists
+        if not self.client.bucket_exists(self.bucket_name):
+            self.client.make_bucket(self.bucket_name)
+    
+    def upload_file(self, file_path: str, object_name: str, content_type: str = "audio/mpeg"):
+        """Upload file to MinIO"""
+        self.client.fput_object(
+            bucket_name=self.bucket_name,
+            object_name=object_name,
+            file_path=file_path,
+            content_type=content_type
+        )
+        return f"{self.bucket_name}/{object_name}"
+    
+    def upload_bytes(self, data: bytes, object_name: str, content_type: str = "audio/mpeg"):
+        """Upload bytes to MinIO"""
+        from io import BytesIO
+        self.client.put_object(
+            bucket_name=self.bucket_name,
+            object_name=object_name,
+            data=BytesIO(data),
+            length=len(data),
+            content_type=content_type
+        )
+        return f"{self.bucket_name}/{object_name}"
+    
+    def get_presigned_url(self, object_name: str, expires: timedelta = timedelta(hours=1)) -> str:
+        """Generate presigned URL for temporary access"""
+        return self.client.presigned_get_object(
+            bucket_name=self.bucket_name,
+            object_name=object_name,
+            expires=expires
+        )
+    
+    def delete_file(self, object_name: str):
+        """Delete file from MinIO"""
+        self.client.remove_object(
+            bucket_name=self.bucket_name,
+            object_name=object_name
+        )
+
+# Usage in FastAPI
+storage = MinIOStorage()
+
+@app.post("/admin/import/audio")
+async def upload_audio(files: List[UploadFile]):
+    results = []
+    for file in files:
+        object_name = f"audio/uploads/{session_id}/{file.filename}"
+        content = await file.read()
+        storage.upload_bytes(content, object_name, content_type=file.content_type)
+        url = storage.get_presigned_url(object_name)
+        results.append({
+            "filename": file.filename,
+            "url": url
+        })
+    return {"files": results}
+```
+
+---
+
+#### Monitoring & Maintenance
+
+**MinIO Health Check**:
+```bash
+# Check MinIO status
+curl http://localhost:9000/minio/health/live
+
+# View bucket usage
+mc admin info myminio
+```
+
+**Backup Strategy**:
+```bash
+# Mirror bucket to backup location
+mc mirror myminio/englishapp-audio /backup/minio/
+
+# Schedule with cron (daily backup at 2 AM)
+0 2 * * * mc mirror myminio/englishapp-audio /backup/minio/
+```
+
+**Capacity Planning**:
+- Average audio file: ~50KB (MP3 64kbps, 10 seconds)
+- 1000 speeches: ~50MB
+- 10,000 speeches: ~500MB
+- Recommended: Start with 10GB storage, scale as needed
 
 ---
 
@@ -1647,12 +1786,13 @@ JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
-# Storage
+# Storage (MinIO)
 S3_BUCKET_NAME=englishapp-audio
-S3_ENDPOINT_URL=https://s3.amazonaws.com
-S3_ACCESS_KEY=your_access_key
-S3_SECRET_KEY=your_secret_key
+S3_ENDPOINT_URL=http://minio:9000
+S3_ACCESS_KEY=minio_access_key
+S3_SECRET_KEY=minio_secret_key
 S3_REGION=us-east-1
+S3_USE_SSL=false  # Set to true in production with proper TLS
 
 # Speech Provider
 SPEECH_PROVIDER=azure
