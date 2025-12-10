@@ -1,9 +1,16 @@
 # Mobile App Specification - English Learning App
 
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Date:** December 10, 2025  
 **Platform:** Flutter (Android, iOS, Tablet)  
-**Status:** Phase 1 (MVP)
+**Status:** Phase 1 (MVP)  
+**Constitution Compliance**: v1.0.0
+
+> **Constitution Reference**: This specification adheres to the [English Learning App Constitution](../.specify/memory/constitution.md) v1.0.0. All implementation must follow the six core principles, particularly:
+> - **Principle I**: Clean Architecture with strict layer separation (Presentation → Domain ← Data)
+> - **Principle II**: Domain logic test coverage ≥80% (BLoCs, use cases, repositories)
+> - **Principle III**: Immutable BLoC states with `@immutable` annotation, pure domain entities
+> - **Principle IV**: Zero secrets in code - Firebase config via environment-specific builds
 
 ---
 
@@ -64,6 +71,7 @@ A Flutter-based English learning mobile application focused on listening compreh
 - **Flutter**: 3.24.5 (Dart 3.5.4)
 - **State Management**: flutter_bloc (^8.1.6)
 - **Dependency Injection**: get_it (^8.0.2)
+- **Testing**: flutter_test (SDK), mockito (^5.4.4), bloc_test (^9.1.7) (per Constitution Principle II)
 
 ### Local Storage
 - **Hive**: ^2.2.3 (NoSQL local database)
@@ -109,40 +117,175 @@ A Flutter-based English learning mobile application focused on listening compreh
 
 ## Architecture
 
-### Clean Architecture Layers
+### Clean Architecture Layers (Constitution Principle I)
+
+**This app follows clean architecture with strict layer separation and dependency inversion:**
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                  Presentation Layer                     │
+│           Presentation Layer (UI + BLoC)                │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │   Screens   │  │   Widgets   │  │    Theme    │    │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘    │
-│         └─────────────────┴─────────────────┘           │
+│  │   Screens   │  │   Widgets   │  │    BLoCs    │    │
+│  │  (widgets)  │  │ (reusable)  │  │(state mgmt) │    │
+│  └─────────────┘  └─────────────┘  └──────┬──────┘    │
+│                                             │           │
+│  NO business logic here - only UI events   │           │
+└─────────────────────────────────────────────┼───────────┘
+                                              │ calls
+                                              ▼
+┌─────────────────────────────────────────────────────────┐
+│              Domain Layer (Business Logic)              │
+│  ┌───────────────┐  ┌───────────────────────────────┐  │
+│  │  Use Cases    │  │  Entities (Immutable)         │  │
+│  │ (operations)  │  │  - User, Speech, GameSession  │  │
+│  └───────┬───────┘  └───────────────────────────────┘  │
+│          │                                              │
+│  ┌───────▼──────────────────────────────────────┐      │
+│  │  Repository Interfaces                       │      │
+│  │  (abstract contracts)                        │      │
+│  └──────────────────────────────────────────────┘      │
+│                                                         │
+│  ≥80% test coverage MANDATORY (Constitution II)        │
 └─────────────────────┬───────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────┐
-│                    BLoC Layer                           │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
-│  │ AuthBloc │ │ GameBloc │ │ProfileBloc│ │HistoryBloc│ │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘  │
-│       └────────────┴────────────┴────────────┘         │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────┐
-│                 Repository Layer                        │
+                      │ implements
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│          Data Layer (External Concerns)                 │
 │  ┌────────────────┐ ┌────────────────┐ ┌─────────────┐ │
-│  │ UserRepository │ │ GameRepository │ │TagRepository│ │
-│  └────────┬───────┘ └────────┬───────┘ └──────┬──────┘ │
-│           └──────────────────┴────────────────┘         │
-└─────────────────────┬───────────────────────────────────┘
-                      │
-        ┌─────────────┴─────────────┐
-        │                           │
-┌───────▼────────┐         ┌────────▼─────────┐
-│  Local Storage │         │   Remote API     │
-│  (Hive Boxes)  │         │  (Retrofit/Dio)  │
-└────────────────┘         └──────────────────┘
+│  │  Repositories  │ │  Data Sources  │ │    Models   │ │
+│  │    (impl)      │ │ (remote/local) │ │    (DTOs)   │ │
+│  └────────┬───────┘ └────────┬───────┘ └─────────────┘ │
+│           └──────────────────┴─────────────────────────┘│
+│                      │                │                  │
+│           ┌──────────▼──────┐  ┌─────▼──────────┐      │
+│           │  Hive Storage   │  │  Dio API       │      │
+│           │ (offline queue) │  │ (REST calls)   │      │
+│           └─────────────────┘  └────────────────┘      │
+└─────────────────────────────────────────────────────────┘
 ```
+
+**Layer Responsibilities**:
+- **Presentation**: UI rendering, user input, BLoC state management (NO business logic)
+- **Domain**: Business rules, use cases, immutable entities (pure, framework-agnostic)
+- **Data**: API calls, database operations, DTO serialization (external dependencies)
+
+**Critical Rules (Constitution Principle I)**:
+- ❌ NO API calls in BLoCs - use repositories
+- ❌ NO business logic in widgets - emit events to BLoCs
+- ❌ NO database/Hive access in domain layer - use repository interfaces
+- ✅ Domain entities are immutable (Equatable)
+- ✅ BLoC states are immutable (`@immutable` annotation)
+- ✅ Dependencies flow: Presentation → Domain ← Data
+
+### Immutability Requirements (Constitution Principle III)
+
+**BLoC States**:
+```dart
+@immutable
+abstract class GameState extends Equatable {}
+
+class GameLoaded extends GameState {
+  final List<Speech> speeches;  // Immutable list
+  final int currentIndex;       // Immutable primitive
+  
+  const GameLoaded({required this.speeches, required this.currentIndex});
+  
+  // Use copyWith for state updates
+  GameLoaded copyWith({List<Speech>? speeches, int? currentIndex}) {
+    return GameLoaded(
+      speeches: speeches ?? this.speeches,
+      currentIndex: currentIndex ?? this.currentIndex,
+    );
+  }
+}
+```
+
+**Domain Entities**:
+```dart
+class Speech extends Equatable {
+  final String id;
+  final String text;
+  final String level;
+  
+  const Speech({required this.id, required this.text, required this.level});
+  
+  @override
+  List<Object> get props => [id, text, level];
+}
+```
+
+### Security Requirements (Constitution Principle IV)
+
+**Secrets Management**:
+- Firebase configuration via `firebase_options.dart` (gitignored, generated per environment)
+- API base URL via environment-specific build configs:
+  ```dart
+  // lib/core/constants/api_constants.dart
+  class ApiConstants {
+    static const String BASE_URL = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'http://localhost:8000/api/v1', // Dev default
+    );
+  }
+  ```
+- Build commands:
+  ```bash
+  # Development
+  flutter run --dart-define=API_BASE_URL=http://localhost:8000/api/v1
+  
+  # Production
+  flutter build apk --dart-define=API_BASE_URL=https://api.prod.com/api/v1
+  ```
+
+**Security Checklist**:
+- ✅ `firebase_options.dart` in `.gitignore`
+- ✅ `google-services.json` (Android) in `.gitignore`
+- ✅ `GoogleService-Info.plist` (iOS) in `.gitignore`
+- ✅ Example templates provided: `firebase_options.dart.example`
+- ✅ Pre-commit hooks scan for secrets
+- ✅ No API keys hardcoded in source
+
+### Testing Requirements (Constitution Principle II)
+
+**Coverage Targets**:
+- **BLoCs** (state management): ≥80% coverage **MANDATORY**
+- **Use Cases**: ≥80% coverage **MANDATORY**
+- **Repositories**: ≥80% coverage **MANDATORY**
+- **Widgets**: ≥60% coverage
+- **Data Sources**: ≥60% coverage (mocked)
+
+**Test Structure**:
+```
+test/
+├── unit/
+│   ├── blocs/              # BLoC tests (≥80% coverage)
+│   │   ├── auth_bloc_test.dart
+│   │   ├── game_bloc_test.dart
+│   │   └── history_bloc_test.dart
+│   ├── domain/
+│   │   ├── usecases/       # Use case tests (≥80% coverage)
+│   │   └── entities/       # Entity equality tests
+│   └── data/
+│       └── repositories/   # Repository tests with mocks (≥80% coverage)
+├── widget/
+│   ├── screens/           # Widget tests
+│   └── widgets/
+└── integration/
+    ├── auth_flow_test.dart          # Login → JWT → Home
+    ├── game_session_test.dart       # Config → Play → Results
+    └── offline_sync_test.dart       # Offline queue → Reconnect → Sync
+```
+
+**Required Integration Tests**:
+1. Authentication flow: Login → Token storage → Auto-login
+2. Game session: Fetch speeches → Play audio → Save results → Offline queue
+3. Offline sync: Queue sessions → Detect connectivity → Sync to backend
+4. Repository layer: API failure → Fallback to cache → Retry on reconnect
+
+**CI Pipeline Requirements**:
+- All tests must pass before merge
+- Coverage report generated per PR
+- Domain layer (BLoCs/use cases/repositories) coverage below 80% blocks merge
 
 ### Folder Structure
 
@@ -1948,6 +2091,28 @@ blocTest<AuthBloc, AuthState>(
 
 ---
 
+## Constitution Compliance Checklist
+
+Before implementation begins, verify:
+
+- [ ] **Principle I (Clean Architecture)**: Three-layer structure with dependency inversion (Presentation → Domain ← Data)
+- [ ] **Principle II (Test Coverage)**: Test files created for all BLoCs, use cases, repositories with ≥80% target
+- [ ] **Principle III (Immutability)**: All BLoC states use `@immutable`, domain entities use `const` constructors
+- [ ] **Principle IV (Security)**: `firebase_options.dart` gitignored, API URL via build-time environment variables
+- [ ] **Principle V (AI Governance)**: CI/CD workflow files marked for human-only modification
+- [ ] **Principle VI (Code Review)**: PR template includes constitution checklist
+
+**Implementation Notes**:
+- BLoC events trigger use cases, never call repositories directly
+- Use `Either<Failure, T>` (dartz) for error handling in repositories
+- All network calls wrapped in try-catch, return `Left(NetworkFailure())` on error
+- Audio recording to memory buffer only - `Uint8List` never written to filesystem
+- Offline sync: Hive stores pending sessions, connectivity_plus triggers sync on reconnect
+
+---
+
 **End of Mobile Specification**
 
 *This document should be kept in sync with backend API changes and updated as features evolve.*
+
+**Constitution Version**: 1.0.0 | **Specification Version**: 1.1.0

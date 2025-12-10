@@ -1,8 +1,15 @@
 # Backend Specification
 
-**Version**: 1.0.0  
+**Version**: 1.1.0  
 **Last Updated**: December 10, 2025  
-**Status**: Draft
+**Status**: Draft  
+**Constitution Compliance**: v1.0.0
+
+> **Constitution Reference**: This specification adheres to the [English Learning App Constitution](../.specify/memory/constitution.md) v1.0.0. All implementation must follow the six core principles, particularly:
+> - **Principle I**: Clean Architecture with strict layer separation (API routes → Services → Data)
+> - **Principle II**: Domain logic test coverage ≥80%
+> - **Principle III**: Pure functions and stateless services preferred
+> - **Principle IV**: Zero secrets in code - all credentials via environment variables
 
 ## Clarifications
 
@@ -19,11 +26,129 @@
 This document specifies the backend API and admin system for the English Learning App. The backend provides RESTful JSON APIs for mobile client operations, admin content management tools, and integrations with speech-to-text services for pronunciation scoring.
 
 **Technology Stack**:
-- **Framework**: FastAPI (Python 3.10+)
+- **Framework**: FastAPI (Python 3.12+)
 - **Database**: PostgreSQL 12+
 - **Storage**: MinIO (self-hosted S3-compatible object storage) for audio files
 - **Authentication**: JWT-based custom implementation with HS256 algorithm
 - **Speech-to-Text**: Azure Cognitive Services Speech SDK with pronunciation assessment
+- **Testing**: pytest, pytest-cov, pytest-asyncio (per Constitution Principle II)
+
+---
+
+## Architecture & Design Principles
+
+### Clean Architecture (Constitution Principle I)
+
+This backend follows clean architecture with three layers:
+
+```
+┌─────────────────────────────────────────┐
+│   Presentation Layer (API Routes)      │
+│   - FastAPI route handlers             │
+│   - Request/response validation        │
+│   - HTTP status codes                  │
+└───────────────┬─────────────────────────┘
+                │ (calls)
+                ▼
+┌─────────────────────────────────────────┐
+│   Service Layer (Business Logic)       │
+│   - AuthService, GameService, etc.     │
+│   - Pure business logic                │
+│   - No HTTP/database concerns          │
+└───────────────┬─────────────────────────┘
+                │ (uses)
+                ▼
+┌─────────────────────────────────────────┐
+│   Data Layer (Models & Repositories)   │
+│   - SQLAlchemy ORM models              │
+│   - Database queries                   │
+│   - External API integrations          │
+└─────────────────────────────────────────┘
+```
+
+**Layer Responsibilities**:
+- **API Routes** (`app/api/v1/*.py`): HTTP handling only - validate requests, call services, return responses
+- **Services** (`app/services/*.py`): Business logic - authentication, game rules, speech scoring logic
+- **Models** (`app/models/*.py`): Data persistence - SQLAlchemy models, database constraints
+
+**Critical Rules**:
+- ❌ NO business logic in API route handlers
+- ❌ NO database queries in API route handlers
+- ✅ All business logic in service classes
+- ✅ Services are stateless and testable
+
+### Security Requirements (Constitution Principle IV)
+
+**Secrets Management**:
+- All credentials stored in `.env` file (gitignored) or cloud secret manager
+- Required environment variables:
+  ```bash
+  # Database
+  DATABASE_URL=postgresql://user:pass@localhost/dbname
+  
+  # JWT Authentication
+  JWT_SECRET_KEY=<random-256-bit-key>
+  JWT_ALGORITHM=HS256
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+  JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+  
+  # MinIO Storage
+  MINIO_ENDPOINT=localhost:9000
+  MINIO_ACCESS_KEY=<minio-access-key>
+  MINIO_SECRET_KEY=<minio-secret-key>
+  MINIO_BUCKET_NAME=english-app-audio
+  
+  # Azure Speech Services
+  AZURE_SPEECH_KEY=<azure-subscription-key>
+  AZURE_SPEECH_REGION=<azure-region>
+  
+  # OAuth Provider Validation
+  GOOGLE_CLIENT_ID=<google-oauth-client-id>
+  FACEBOOK_APP_ID=<facebook-app-id>
+  FACEBOOK_APP_SECRET=<facebook-app-secret>
+  ```
+
+**Security Checklist**:
+- ✅ `.env` in `.gitignore`
+- ✅ `.env.example` template provided (no real values)
+- ✅ Pre-commit hooks scan for secrets
+- ✅ Production uses AWS Secrets Manager / Azure Key Vault
+- ✅ Secrets rotated every 90 days
+
+### Testing Requirements (Constitution Principle II)
+
+**Coverage Targets**:
+- **Service Layer** (business logic): ≥80% coverage **MANDATORY**
+- **API Routes**: ≥60% coverage
+- **Models**: ≥60% coverage (schema validation, constraints)
+
+**Test Structure**:
+```
+tests/
+├── unit/
+│   ├── services/          # Service layer tests (≥80% coverage)
+│   │   ├── test_auth_service.py
+│   │   ├── test_game_service.py
+│   │   └── test_speech_provider.py
+│   └── utils/
+│       └── test_security.py
+├── integration/
+│   ├── test_auth_flow.py        # JWT issuance, OAuth validation
+│   ├── test_game_session.py     # End-to-end game flow
+│   └── test_azure_speech.py     # Azure SDK integration
+└── conftest.py                  # Fixtures, mocks
+```
+
+**Required Integration Tests**:
+1. Authentication flow: Register → Login → JWT validation → Refresh token
+2. OAuth flow: Token validation with Google/Apple/Facebook APIs
+3. Azure Speech SDK: Audio upload → Pronunciation scoring
+4. Database transactions: Game session creation with results
+
+**CI Pipeline Requirements**:
+- All tests must pass before merge
+- Coverage report generated per PR
+- Service layer coverage below 80% blocks merge
 
 ---
 
@@ -1966,6 +2091,27 @@ CREATE INDEX idx_game_result_session_seq ON game_results(session_id, sequence_nu
 
 ---
 
+## Constitution Compliance Checklist
+
+Before implementation begins, verify:
+
+- [ ] **Principle I (Clean Architecture)**: Three-layer structure planned (API → Services → Data)
+- [ ] **Principle II (Test Coverage)**: Test files created for all services with ≥80% target
+- [ ] **Principle III (Functional Purity)**: Services designed as stateless classes with pure methods
+- [ ] **Principle IV (Security)**: `.env.example` created, no secrets in code
+- [ ] **Principle V (AI Governance)**: CI/CD files marked for human-only modification
+- [ ] **Principle VI (Code Review)**: PR template includes constitution checklist
+
+**Implementation Notes**:
+- Service methods should return `Result[T, Error]` or raise typed exceptions (functional error handling)
+- All database operations wrapped in transactions where needed
+- Audio buffers deleted immediately after processing (memory-only, no persistence)
+- JWT tokens include expiration timestamps and user claims
+
+---
+
 **End of Backend Specification**
 
 This document provides a comprehensive guide for implementing the backend system. For questions or clarifications, refer to the main [spec_codebase.md](./spec_codebase.md) or contact the technical lead.
+
+**Constitution Version**: 1.0.0 | **Specification Version**: 1.1.0
