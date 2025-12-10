@@ -257,13 +257,13 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M056 [P] Create theme system with light and dark ThemeData in lib/core/theme/app_theme.dart
-- [ ] M057 [P] Create responsive utils with Material Design breakpoints (≥600dp for tablet, ≥840dp for large tablet) in lib/core/utils/responsive_utils.dart
-- [ ] M058 [P] Create responsive builder widget for adaptive layouts using MediaQuery.of(context).size.width in lib/presentation/widgets/common/responsive_builder.dart
-- [ ] M059 [P] Update all screens with responsive layouts for tablets (phone <600dp, tablet ≥600dp) in lib/presentation/screens/
-- [ ] M060 [P] Set up localization with ARB files in lib/l10n/
-- [ ] M061 Create Vietnamese translations in lib/l10n/app_vi.arb
-- [ ] M062 Create English translations in lib/l10n/app_en.arb
+- [X] M056 [P] Create theme system with light and dark ThemeData in lib/core/theme/app_theme.dart
+- [X] M057 [P] Create responsive utils with Material Design breakpoints (≥600dp for tablet, ≥840dp for large tablet) in lib/core/utils/responsive_utils.dart
+- [X] M058 [P] Create responsive builder widget for adaptive layouts using MediaQuery.of(context).size.width in lib/presentation/widgets/common/responsive_builder.dart
+- [ ] M059 [P] Update all screens with responsive layouts for tablets (phone <600dp, tablet ≥600dp) in lib/presentation/screens/ [DEFERRED - Can be done iteratively]
+- [X] M060 [P] Set up localization with ARB files in lib/l10n/
+- [X] M061 Create Vietnamese translations in lib/l10n/app_vi.arb
+- [X] M062 Create English translations in lib/l10n/app_en.arb
 
 ---
 

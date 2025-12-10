@@ -1,0 +1,348 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "English Practice",
+  "@appTitle": {
+    "description": "The application title"
+  },
+
+  "welcomeBack": "Welcome Back",
+  "@welcomeBack": {
+    "description": "Welcome message on login screen"
+  },
+
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+
+  "password": "Password",
+  "@password": {
+    "description": "Password field label"
+  },
+
+  "login": "Login",
+  "@login": {
+    "description": "Login button text"
+  },
+
+  "register": "Register",
+  "@register": {
+    "description": "Register button text"
+  },
+
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout button text"
+  },
+
+  "dontHaveAccount": "Don't have an account?",
+  "@dontHaveAccount": {
+    "description": "Text before register link"
+  },
+
+  "alreadyHaveAccount": "Already have an account?",
+  "@alreadyHaveAccount": {
+    "description": "Text before login link"
+  },
+
+  "name": "Name",
+  "@name": {
+    "description": "Name field label"
+  },
+
+  "confirmPassword": "Confirm Password",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+
+  "gameConfig": "Game Configuration",
+  "@gameConfig": {
+    "description": "Game configuration screen title"
+  },
+
+  "selectGameType": "Select Game Type",
+  "@selectGameType": {
+    "description": "Game type selection label"
+  },
+
+  "listenOnly": "Listen Only",
+  "@listenOnly": {
+    "description": "Listen-only game type"
+  },
+
+  "listenAndRepeat": "Listen and Repeat",
+  "@listenAndRepeat": {
+    "description": "Listen-and-repeat game type"
+  },
+
+  "selectDifficulty": "Select Difficulty",
+  "@selectDifficulty": {
+    "description": "Difficulty selection label"
+  },
+
+  "easy": "Easy",
+  "@easy": {
+    "description": "Easy difficulty"
+  },
+
+  "medium": "Medium",
+  "@medium": {
+    "description": "Medium difficulty"
+  },
+
+  "hard": "Hard",
+  "@hard": {
+    "description": "Hard difficulty"
+  },
+
+  "numberOfQuestions": "Number of Questions",
+  "@numberOfQuestions": {
+    "description": "Question count label"
+  },
+
+  "startGame": "Start Game",
+  "@startGame": {
+    "description": "Start game button"
+  },
+
+  "question": "Question",
+  "@question": {
+    "description": "Question label"
+  },
+
+  "of": "of",
+  "@of": {
+    "description": "Question counter separator (e.g. 1 of 10)"
+  },
+
+  "play": "Play",
+  "@play": {
+    "description": "Play audio button"
+  },
+
+  "submit": "Submit",
+  "@submit": {
+    "description": "Submit answer button"
+  },
+
+  "next": "Next",
+  "@next": {
+    "description": "Next question button"
+  },
+
+  "viewSummary": "View Summary",
+  "@viewSummary": {
+    "description": "View summary button"
+  },
+
+  "gameSummary": "Game Summary",
+  "@gameSummary": {
+    "description": "Game summary screen title"
+  },
+
+  "score": "Score",
+  "@score": {
+    "description": "Score label"
+  },
+
+  "accuracy": "Accuracy",
+  "@accuracy": {
+    "description": "Accuracy label"
+  },
+
+  "correct": "Correct",
+  "@correct": {
+    "description": "Correct answer indicator"
+  },
+
+  "incorrect": "Incorrect",
+  "@incorrect": {
+    "description": "Incorrect answer indicator"
+  },
+
+  "yourAnswer": "Your Answer",
+  "@yourAnswer": {
+    "description": "User's answer label"
+  },
+
+  "correctAnswer": "Correct Answer",
+  "@correctAnswer": {
+    "description": "Correct answer label"
+  },
+
+  "history": "History",
+  "@history": {
+    "description": "History tab/screen title"
+  },
+
+  "noSessions": "No sessions yet",
+  "@noSessions": {
+    "description": "Empty state message for history"
+  },
+
+  "startPlayingToSeeHistory": "Start playing to see your history here",
+  "@startPlayingToSeeHistory": {
+    "description": "Empty state description for history"
+  },
+
+  "sessionDetail": "Session Detail",
+  "@sessionDetail": {
+    "description": "Session detail screen title"
+  },
+
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile tab/screen title"
+  },
+
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Edit profile button/screen title"
+  },
+
+  "save": "Save",
+  "@save": {
+    "description": "Save button text"
+  },
+
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+
+  "avatarUrl": "Avatar URL",
+  "@avatarUrl": {
+    "description": "Avatar URL field label"
+  },
+
+  "enterValidUrl": "Enter a valid URL for your avatar",
+  "@enterValidUrl": {
+    "description": "Avatar URL helper text"
+  },
+
+  "deleteAccount": "Delete Account",
+  "@deleteAccount": {
+    "description": "Delete account button"
+  },
+
+  "deleteAccountConfirmation": "Are you sure you want to delete your account? This action cannot be undone.",
+  "@deleteAccountConfirmation": {
+    "description": "Delete account confirmation dialog message"
+  },
+
+  "delete": "Delete",
+  "@delete": {
+    "description": "Delete button text"
+  },
+
+  "logoutConfirmation": "Are you sure you want to logout?",
+  "@logoutConfirmation": {
+    "description": "Logout confirmation dialog message"
+  },
+
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings screen title"
+  },
+
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Appearance section title"
+  },
+
+  "theme": "Theme",
+  "@theme": {
+    "description": "Theme setting label"
+  },
+
+  "light": "Light",
+  "@light": {
+    "description": "Light theme option"
+  },
+
+  "dark": "Dark",
+  "@dark": {
+    "description": "Dark theme option"
+  },
+
+  "system": "System",
+  "@system": {
+    "description": "System theme option"
+  },
+
+  "alwaysUseLightTheme": "Always use light theme",
+  "@alwaysUseLightTheme": {
+    "description": "Light theme description"
+  },
+
+  "alwaysUseDarkTheme": "Always use dark theme",
+  "@alwaysUseDarkTheme": {
+    "description": "Dark theme description"
+  },
+
+  "followSystemTheme": "Follow system theme",
+  "@followSystemTheme": {
+    "description": "System theme description"
+  },
+
+  "language": "Language",
+  "@language": {
+    "description": "Language setting label"
+  },
+
+  "appLanguage": "App Language",
+  "@appLanguage": {
+    "description": "App language setting title"
+  },
+
+  "english": "English",
+  "@english": {
+    "description": "English language option"
+  },
+
+  "vietnamese": "Vietnamese",
+  "@vietnamese": {
+    "description": "Vietnamese language option (in English)"
+  },
+
+  "about": "About",
+  "@about": {
+    "description": "About section title"
+  },
+
+  "version": "Version",
+  "@version": {
+    "description": "Version label"
+  },
+
+  "home": "Home",
+  "@home": {
+    "description": "Home tab title"
+  },
+
+  "errorLoadingData": "Error loading data",
+  "@errorLoadingData": {
+    "description": "Generic error message"
+  },
+
+  "tryAgain": "Try Again",
+  "@tryAgain": {
+    "description": "Try again button"
+  },
+
+  "loading": "Loading...",
+  "@loading": {
+    "description": "Loading indicator text"
+  },
+
+  "noDataAvailable": "No data available",
+  "@noDataAvailable": {
+    "description": "Empty state message"
+  },
+
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Refresh button text"
+  }
+}
