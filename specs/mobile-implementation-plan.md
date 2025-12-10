@@ -5,6 +5,14 @@
 **Technology Stack**: Flutter 3.24.5, Dart 3.5.4, BLoC, Hive, Firebase Auth  
 **Based on**: [spec/mobile.md](../spec/mobile.md)
 
+## Key Architectural Decisions (from mobile.md Clarifications)
+
+1. **OAuth Integration**: Firebase SDKs for token acquisition (google_sign_in, sign_in_with_apple) - Mobile acquires OAuth tokens, sends to backend /auth/social for JWT issuance
+2. **Audio Recording**: Memory buffer only - Stream audio bytes directly to backend API, never write to filesystem (most secure, no cleanup needed)
+3. **Offline Strategy**: Queue and sync on reconnect - Store completed sessions in Hive, automatically sync to backend when connection restored (ensures no data loss)
+4. **Tablet Layouts**: Responsive scaling with breakpoints - Use MediaQuery to detect screen size, apply different layouts for phone/tablet (7"+/10"+) breakpoints
+5. **Pronunciation Feedback**: Immediate per-sentence feedback - Show pronunciation score after each sentence before advancing to next (best for learning feedback loop)
+
 ---
 
 ## Project Structure
@@ -56,17 +64,17 @@ apps/mobile/
 ## Milestone Overview
 
 1. **Milestone 1: Project Foundation** (3-4 days)
-2. **Milestone 2: Authentication Flow** (4-5 days)
+2. **Milestone 2: Authentication Flow with Firebase OAuth** (4-5 days)
 3. **Milestone 3: Navigation & Backend Integration** (3-4 days)
-4. **Milestone 4: Game Configuration Screen** (2-3 days)
+4. **Milestone 4: Game Configuration & Offline Sync** (2-3 days)
 5. **Milestone 5: Listen-Only Game Mode** (5-6 days)
-6. **Milestone 6: Listen-and-Repeat Game Mode** (6-7 days)
+6. **Milestone 6: Listen-and-Repeat with Memory Buffer Recording** (6-7 days)
 7. **Milestone 7: Game History & Detail** (3-4 days)
 8. **Milestone 8: Profile & Settings** (3-4 days)
-9. **Milestone 9: Theming & Localization** (2-3 days)
+9. **Milestone 9: Theming, Responsive Layouts & Localization** (3-4 days)
 10. **Milestone 10: Testing & Polish** (4-5 days)
 
-**Total Estimated Duration**: 35-45 days
+**Total Estimated Duration**: 36-47 days
 
 ---
 
@@ -1364,14 +1372,20 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
 ### Task 2.5: Implement Firebase Auth Service
 
-**Description**: Create Firebase authentication service for social login (Google, Apple, Facebook).
+**Description**: Create Firebase authentication service for social login (Google, Apple, Facebook). Firebase SDKs are used to acquire OAuth tokens on mobile, which are then sent to backend /auth/social endpoint for validation and JWT issuance.
 
 **Acceptance Criteria**:
-- Google Sign-In integration
-- Apple Sign-In integration (iOS)
-- Facebook Sign-In integration
+- Google Sign-In integration (google_sign_in package)
+- Apple Sign-In integration (sign_in_with_apple package, iOS only)
+- Facebook Sign-In integration (flutter_facebook_auth or Firebase Auth provider)
 - Error handling for each provider
-- Firebase token exchange with backend
+- **OAuth token acquisition flow**:
+  1. Mobile uses Firebase SDK to sign in with provider (Google/Apple/Facebook)
+  2. Extract OAuth token (ID token) from Firebase authentication result
+  3. Send token to backend POST /auth/social with provider name
+  4. Backend validates token directly with provider API (no Firebase Admin SDK)
+  5. Backend returns JWT token for subsequent API requests
+- Token refresh handling
 
 **Files to Create**:
 
@@ -2448,13 +2462,31 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ### Task 4.4: Implement Game Local Data Source
 
-**Description**: Cache tags and game configuration locally.
+**Description**: Cache tags and game configuration locally. Implement offline queue for completed game sessions with automatic sync on reconnect.
 
 **Acceptance Criteria**:
 - Cache tags to reduce API calls
 - Save last game configuration
-- Offline queue for game sessions
-- Hive box operations
+- **Offline queue for completed game sessions**:
+  - Store completed sessions in Hive with pending sync flag
+  - Session includes: mode, level, tag IDs, results array (speeches + scores)
+  - Each queued session marked with: sessionId (local UUID), timestamp, syncStatus (pending/syncing/synced/failed)
+- Hive box operations (authBox, cacheBox, gameBox, settingsBox)
+- **Connectivity monitoring**: Use connectivity_plus to detect online/offline state
+
+**Offline Queue Flow**:
+1. User completes game session offline
+2. Save session to Hive gameBox with syncStatus: 'pending'
+3. On app resume or connectivity change: Check if online
+4. If online: Iterate through pending sessions in gameBox
+5. For each pending session:
+   - Update syncStatus to 'syncing'
+   - POST session to backend /game/sessions
+   - On success: Update syncStatus to 'synced', keep for history
+   - On failure: Revert syncStatus to 'pending', retry later
+6. Show sync status indicator in UI ("X sessions pending sync")
+
+**Benefits**: Ensures no data loss, works seamlessly offline, automatic background sync
 
 **Dependencies**: Task 4.2
 
@@ -2462,13 +2494,25 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ### Task 4.5: Implement Game Repository
 
-**Description**: Implement GameRepository combining remote and local data sources.
+**Description**: Implement GameRepository combining remote and local data sources with offline-first game session persistence.
 
 **Acceptance Criteria**:
 - Implements GameRepository interface
-- Cache-first strategy for tags
-- Offline queue for game sessions
-- Proper error handling
+- Cache-first strategy for tags (reduce API calls)
+- **Offline-first strategy for game sessions**:
+  - Always save completed sessions to Hive first (guarantees no data loss)
+  - Attempt immediate sync to backend if online
+  - If sync fails: Session remains in queue for later sync
+  - Provide sync status callback for UI updates
+- Proper error handling with Either<Failure, Success> pattern
+- **Background sync service**: Periodically retry pending sessions when online
+- Connectivity state management integration
+
+**Implementation Notes**:
+- Use StreamController to emit sync events (pendingCount, syncInProgress, syncComplete)
+- Repository method: `Future<Either<Failure, void>> saveGameSession(GameSession session)`
+- Repository method: `Stream<int> get pendingSessionsCount`
+- Repository method: `Future<void> syncPendingSessions()`
 
 **Dependencies**: Tasks 4.3, 4.4
 
@@ -2629,14 +2673,31 @@ dependencies:
 
 ### Task 6.2: Create Microphone Recorder Service
 
-**Description**: Implement audio recording service using record package.
+**Description**: Implement audio recording service using record package. **Critical**: Record audio to memory buffer only, never write to filesystem. Stream audio bytes directly to backend API for maximum security and zero cleanup.
 
 **Acceptance Criteria**:
-- Start/stop recording
-- Save recording to file
-- Audio format configuration (WAV/M4A)
+- Start/stop recording **to memory buffer**
+- **Record directly to bytes/stream** (no file I/O)
+- Audio format configuration (WAV/M4A, 16kHz sample rate recommended)
 - Recording duration tracking
 - Amplitude monitoring for visual feedback
+- **Memory management**: Properly dispose of audio buffers after API upload
+- Stream audio bytes to backend POST /game/speech-to-text endpoint
+
+**Recording Flow**:
+1. User taps record button
+2. Start recording to memory buffer (Uint8List or Stream<List<int>>)
+3. Monitor recording duration and amplitude
+4. On stop: Get recorded bytes from buffer
+5. Immediately send bytes to backend API (multipart/form-data)
+6. Dispose audio buffer after successful upload
+7. Never persist audio to filesystem
+
+**Benefits**:
+- Maximum security (no audio files left on device)
+- No cleanup required (no temp files to delete)
+- Faster processing (no file I/O overhead)
+- Smaller attack surface (no file permissions needed)
 
 **Dependencies**: Task 6.1
 
@@ -2679,14 +2740,41 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ### Task 6.5: Create Listen-and-Repeat Game Play Screen
 
-**Description**: Implement game play screen with recording UI.
+**Description**: Implement game play screen with recording UI and **immediate per-sentence pronunciation feedback**.
 
 **Acceptance Criteria**:
 - Record button with animation
 - Recording visualization (amplitude bars)
 - Transcription result display
-- Pronunciation score display
-- Word-by-word feedback
+- **Immediate pronunciation score display after each sentence**:
+  - Show pronunciation score (0-100) immediately after transcription completes
+  - Display accuracy, pronunciation, fluency, completeness sub-scores
+  - Color-coded feedback: Green (80+), Yellow (60-79), Red (<60)
+  - Word-by-word pronunciation breakdown with highlighted errors
+  - Show reference text vs. transcribed text comparison
+  - **Block auto-advance**: User must acknowledge feedback before advancing to next sentence
+  - Acknowledgment button: "Continue" or "Next Sentence"
+- Retry recording option (if score < 60, offer retry)
+- **Feedback Flow**:
+  1. User records audio → Stream to backend
+  2. Backend returns: {transcription, score, word_scores}
+  3. Show feedback card with score + analysis
+  4. User reviews feedback
+  5. User taps "Continue" → Advance to next sentence
+  6. Never auto-advance without user acknowledgment
+- Progress indicator showing current sentence / total sentences
+- Session summary after all sentences completed
+
+**UI Components**:
+- Pronunciation score gauge (circular progress indicator)
+- Transcription comparison card (expected vs. actual)
+- Word-level accuracy badges
+- Retry button (if score below threshold)
+- Continue/Next button (only enabled after feedback displayed)
+
+**Benefits**: Best learning feedback loop, gives users time to understand mistakes, reinforces correct pronunciation patterns
+
+**Dependencies**: Task 6.4
 - Retry recording option
 
 **Dependencies**: Task 6.4
@@ -2830,9 +2918,9 @@ flutter run
 
 ---
 
-## Milestone 9: Theming & Localization
+## Milestone 9: Theming, Responsive Layouts & Localization
 
-**Goal**: Implement theming system and multi-language support.
+**Goal**: Implement theming system, tablet-responsive layouts, and multi-language support.
 
 ### Task 9.1: Create Theme System
 
@@ -2850,7 +2938,63 @@ flutter run
 
 ---
 
-### Task 9.2: Implement Localization
+### Task 9.2: Implement Responsive Layouts for Tablets
+
+**Description**: Add responsive layout system using MediaQuery breakpoints to support phone and tablet screen sizes.
+
+**Acceptance Criteria**:
+- **Screen size breakpoints**:
+  - Phone: < 600dp width (4.7" - 6.7" screens)
+  - Small Tablet: 600-840dp width (7"+ screens)
+  - Large Tablet: > 840dp width (10"+ screens)
+- **MediaQuery-based layout detection**:
+  - Create responsive utility class with screen size detection
+  - Methods: `isPhone()`, `isSmallTablet()`, `isLargeTablet()`
+  - Dynamic layout selection based on breakpoint
+- **Adaptive layouts per screen**:
+  - **Game Config Screen**: Phone (single column), Tablet (two-column grid for tags)
+  - **Game Play Screen**: Phone (portrait), Tablet (landscape with side-by-side layout)
+  - **History Screen**: Phone (list view), Tablet (master-detail split view)
+  - **Profile Screen**: Phone (scrollable), Tablet (card-based grid layout)
+- **Typography scaling**: Adjust font sizes for larger screens (1.1x for small tablet, 1.2x for large tablet)
+- **Touch target sizing**: Maintain minimum 48x48dp touch targets across all devices
+- **Spacing adjustments**: Increase padding/margins on larger screens for better visual hierarchy
+
+**Files to Create**:
+- `lib/core/utils/responsive_utils.dart`: Screen size detection and breakpoint utilities
+- `lib/presentation/widgets/common/responsive_builder.dart`: Widget builder for responsive layouts
+
+**Implementation Example**:
+```dart
+class ResponsiveUtils {
+  static bool isPhone(BuildContext context) {
+    return MediaQuery.of(context).size.width < 600;
+  }
+  
+  static bool isSmallTablet(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    return width >= 600 && width < 840;
+  }
+  
+  static bool isLargeTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 840;
+  }
+  
+  static double getScaleFactor(BuildContext context) {
+    if (isLargeTablet(context)) return 1.2;
+    if (isSmallTablet(context)) return 1.1;
+    return 1.0;
+  }
+}
+```
+
+**Benefits**: Optimized UX for tablets, professional multi-device support, better engagement on larger screens
+
+**Dependencies**: Task 9.1
+
+---
+
+### Task 9.3: Implement Localization
 
 **Description**: Add multi-language support using flutter_localizations.
 
@@ -2888,14 +3032,15 @@ flutter pub get
 flutter gen-l10n
 ```
 
-**Dependencies**: Task 9.1
+**Dependencies**: Task 9.2
 
 ---
 
 ## Milestone 9 Completion Checklist
 
 - [ ] Task 9.1: Theme system implemented
-- [ ] Task 9.2: Localization setup completed
+- [ ] Task 9.2: Responsive layouts for tablets implemented
+- [ ] Task 9.3: Localization setup completed
 
 **Validation**:
 ```bash
@@ -3089,23 +3234,27 @@ flutter build ios --release
 
 **All Milestones**:
 1. ✅ Milestone 1: Project Foundation & Setup
-2. ✅ Milestone 2: Authentication Flow
+2. ✅ Milestone 2: Authentication Flow with Firebase OAuth
 3. ✅ Milestone 3: Navigation & Backend Integration
-4. ✅ Milestone 4: Game Configuration Screen
+4. ✅ Milestone 4: Game Configuration & Offline Sync
 5. ✅ Milestone 5: Listen-Only Game Mode
-6. ✅ Milestone 6: Listen-and-Repeat Game Mode
+6. ✅ Milestone 6: Listen-and-Repeat with Memory Buffer Recording
 7. ✅ Milestone 7: Game History & Detail Screens
 8. ✅ Milestone 8: Profile & Settings
-9. ✅ Milestone 9: Theming & Localization
+9. ✅ Milestone 9: Theming, Responsive Layouts & Localization
 10. ✅ Milestone 10: Testing & Polish
 
-**Total Tasks**: 50+ tasks across 10 milestones
+**Total Tasks**: 52+ tasks across 10 milestones
 
-**Key Features Implemented**:
-- Complete authentication system (email, Google, Apple, Facebook)
+**Key Features Implemented** (Aligned with mobile.md Clarifications):
+- **Authentication**: Firebase SDKs for OAuth token acquisition (google_sign_in, sign_in_with_apple) → Backend JWT issuance
+- **Audio Recording**: Memory buffer only - Stream audio bytes directly to API, zero filesystem writes
+- **Offline Strategy**: Queue completed sessions in Hive, automatic sync on reconnect (no data loss)
+- **Responsive Design**: MediaQuery breakpoints for phone/tablet (7"+/10"+), adaptive layouts
+- **Pronunciation Feedback**: Immediate per-sentence feedback, user acknowledges before advancing
 - Clean architecture with domain, data, and presentation layers
 - Two game modes: Listen-Only and Listen-and-Repeat
-- Speech-to-text integration with pronunciation scoring
+- Speech-to-text integration with detailed pronunciation scoring
 - Game history with filtering and pagination
 - User profile and settings management
 - Light/Dark theme support
@@ -3116,30 +3265,41 @@ flutter build ios --release
 **Technical Stack**:
 - Flutter 3.24.5 / Dart 3.5.4
 - BLoC State Management
-- Hive Local Storage
-- Firebase Authentication
+- Hive Local Storage (offline queue)
+- Firebase Authentication (OAuth SDKs)
 - Retrofit + Dio for API
-- just_audio + record for Audio
+- just_audio + record for Audio (memory buffer)
+- connectivity_plus for Sync Detection
 - go_router for Navigation
 - Material 3 Design
+- Responsive Layouts (MediaQuery breakpoints)
 
 **Architecture**:
 ```
 lib/
-├── core/           # Core utilities, theme, constants
-├── data/           # Data sources, models, repositories
+├── core/           # Core utilities, theme, constants, responsive utils
+├── data/           # Data sources, models, repositories (offline queue)
 ├── domain/         # Entities, repositories, use cases
-├── presentation/   # BLoCs, screens, widgets
+├── presentation/   # BLoCs, screens, widgets (responsive builders)
 ├── di/             # Dependency injection
 └── l10n/           # Localization files
 ```
 
+**Key Architectural Decisions from mobile.md**:
+1. Firebase SDKs acquire OAuth tokens → Backend validates → JWT issuance (no Firebase Admin SDK on backend)
+2. Audio recording to memory buffer only → Stream to API → No file I/O (maximum security)
+3. Completed game sessions always saved to Hive first → Auto-sync on reconnect (zero data loss)
+4. MediaQuery-based responsive layouts with 600dp/840dp breakpoints (phone/small tablet/large tablet)
+5. Immediate per-sentence pronunciation feedback with user acknowledgment (best learning feedback loop)
+
 **Next Steps**:
 1. Review and implement all tasks sequentially
 2. Test each milestone thoroughly before proceeding
-3. Integrate with actual backend API
-4. Conduct user acceptance testing
-5. Prepare for App Store and Play Store submission
+3. Integrate with actual backend API (JWT authentication, memory buffer audio upload)
+4. Implement responsive layouts for all screens (phone + tablet breakpoints)
+5. Test offline sync mechanism (complete sessions offline → verify auto-sync on reconnect)
+6. Conduct user acceptance testing on multiple device sizes
+7. Prepare for App Store and Play Store submission
 
 ---
 
