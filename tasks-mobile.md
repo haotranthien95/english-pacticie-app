@@ -68,14 +68,14 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M001 [P] Initialize Flutter project in apps/mobile/ with package name com.englishapp.mobile
-- [ ] M002 [P] Add all dependencies to pubspec.yaml (BLoC, Hive, Dio, Firebase, audio packages)
-- [ ] M003 [P] Create clean architecture folder structure (core, data, domain, presentation, di)
-- [ ] M004 [P] Define app constants (API endpoints, storage keys, enums) in lib/core/constants/
-- [ ] M005 [P] Create custom exceptions and error classes in lib/core/errors/
-- [ ] M006 [P] Implement Failure classes for Either pattern in lib/core/errors/failures.dart
-- [ ] M007 Initialize Hive storage with boxes (auth, cache, game, settings) in lib/data/datasources/local/hive_storage.dart
-- [ ] M008 Set up GetIt dependency injection container in lib/di/injection.dart
+- [X] M001 [P] Initialize Flutter project in apps/mobile/ with package name com.englishapp.mobile
+- [X] M002 [P] Add all dependencies to pubspec.yaml (BLoC, Hive, Dio, Firebase, audio packages)
+- [X] M003 [P] Create clean architecture folder structure (core, data, domain, presentation, di)
+- [X] M004 [P] Define app constants (API endpoints, storage keys, enums) in lib/core/constants/
+- [X] M005 [P] Create custom exceptions and error classes in lib/core/errors/
+- [X] M006 [P] Implement Failure classes for Either pattern in lib/core/errors/failures.dart
+- [X] M007 Initialize Hive storage with boxes (auth, cache, game, settings) in lib/data/datasources/local/hive_storage.dart
+- [X] M008 Set up GetIt dependency injection container in lib/di/injection.dart
 
 ---
 
