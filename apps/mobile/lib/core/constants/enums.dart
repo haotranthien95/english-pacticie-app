@@ -101,6 +101,19 @@ extension SpeechLevelExtension on SpeechLevel {
         return 'advanced';
     }
   }
+
+  static SpeechLevel fromValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'beginner':
+        return SpeechLevel.beginner;
+      case 'intermediate':
+        return SpeechLevel.intermediate;
+      case 'advanced':
+        return SpeechLevel.advanced;
+      default:
+        throw ArgumentError('Invalid SpeechLevel value: $value');
+    }
+  }
 }
 
 extension SpeechTypeExtension on SpeechType {
@@ -114,6 +127,21 @@ extension SpeechTypeExtension on SpeechType {
         return 'sentence';
       case SpeechType.paragraph:
         return 'paragraph';
+    }
+  }
+
+  static SpeechType fromValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'word':
+        return SpeechType.word;
+      case 'phrase':
+        return SpeechType.phrase;
+      case 'sentence':
+        return SpeechType.sentence;
+      case 'paragraph':
+        return SpeechType.paragraph;
+      default:
+        throw ArgumentError('Invalid SpeechType value: $value');
     }
   }
 }
@@ -131,6 +159,24 @@ extension GameModeExtension on GameMode {
         return 'challenge';
     }
   }
+
+  static GameMode fromValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'listen_only':
+        return GameMode.listenOnly;
+      case 'listen_and_repeat':
+        return GameMode.listenAndRepeat;
+      case 'practice':
+        return GameMode.practice;
+      case 'challenge':
+        return GameMode.challenge;
+      default:
+        throw ArgumentError('Invalid GameMode value: $value');
+    }
+  }
+}
+    }
+  }
 }
 
 extension AppLanguageExtension on AppLanguage {
@@ -140,6 +186,36 @@ extension AppLanguageExtension on AppLanguage {
         return 'en';
       case AppLanguage.vietnamese:
         return 'vi';
+    }
+  }
+}
+
+extension SyncStatusExtension on SyncStatus {
+  String get value {
+    switch (this) {
+      case SyncStatus.pending:
+        return 'pending';
+      case SyncStatus.syncing:
+        return 'syncing';
+      case SyncStatus.synced:
+        return 'synced';
+      case SyncStatus.failed:
+        return 'failed';
+    }
+  }
+
+  static SyncStatus fromValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'pending':
+        return SyncStatus.pending;
+      case 'syncing':
+        return SyncStatus.syncing;
+      case 'synced':
+        return SyncStatus.synced;
+      case 'failed':
+        return SyncStatus.failed;
+      default:
+        throw ArgumentError('Invalid SyncStatus value: $value');
     }
   }
 }

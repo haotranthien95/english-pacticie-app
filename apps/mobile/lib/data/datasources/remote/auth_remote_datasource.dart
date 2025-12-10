@@ -77,7 +77,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw ServerException(message: 'Unexpected error during registration: $e');
+      throw ServerException(
+          message: 'Unexpected error during registration: $e');
     }
   }
 
@@ -141,7 +142,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw ServerException(message: 'Unexpected error during social login: $e');
+      throw ServerException(
+          message: 'Unexpected error during social login: $e');
     }
   }
 

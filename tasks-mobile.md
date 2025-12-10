@@ -140,14 +140,14 @@ Foundation ──────┐
 
 #### Game Configuration
 
-- [ ] M021 [P] [US2] Create Tag and Speech entities in lib/domain/entities/
-- [ ] M022 [P] [US2] Create GameSession and GameResult entities in lib/domain/entities/
-- [ ] M023 [P] [US2] Create GameRepository interface in lib/domain/repositories/game_repository.dart
-- [ ] M024 [P] [US2] Create game use cases (GetTags, GetRandomSpeeches, CreateSession, SyncSessions) in lib/domain/usecases/game/
-- [ ] M025 [P] [US2] Create TagModel, SpeechModel, GameSessionModel with JSON serialization in lib/data/models/
-- [ ] M026 [US2] Implement game local data source with offline queue and exponential backoff retry (1s, 2s, 4s, 8s) in lib/data/datasources/local/game_local_datasource.dart
-- [ ] M027 [US2] Implement game remote data source (tags, speeches, sessions APIs) in lib/data/datasources/remote/game_remote_datasource.dart
-- [ ] M028 [US2] Implement GameRepositoryImpl with offline-first strategy in lib/data/repositories/game_repository_impl.dart
+- [X] M021 [P] [US2] Create Tag and Speech entities in lib/domain/entities/
+- [X] M022 [P] [US2] Create GameSession and GameResult entities in lib/domain/entities/
+- [X] M023 [P] [US2] Create GameRepository interface in lib/domain/repositories/game_repository.dart
+- [X] M024 [P] [US2] Create game use cases (GetTags, GetRandomSpeeches, CreateSession, SyncSessions) in lib/domain/usecases/game/
+- [X] M025 [P] [US2] Create TagModel, SpeechModel, GameSessionModel with JSON serialization in lib/data/models/
+- [X] M026 [US2] Implement game local data source with offline queue and exponential backoff retry (1s, 2s, 4s, 8s) in lib/data/datasources/local/game_local_datasource.dart
+- [X] M027 [US2] Implement game remote data source (tags, speeches, sessions APIs) in lib/data/datasources/remote/game_remote_datasource.dart
+- [X] M028 [US2] Implement GameRepositoryImpl with offline-first strategy in lib/data/repositories/game_repository_impl.dart
 - [ ] M029 [US2] Create GameConfigBloc for game setup screen in lib/presentation/blocs/game/game_config_bloc.dart
 - [ ] M030 [US2] Create Game Config screen with level, type, tag selectors in lib/presentation/screens/game/game_config_screen.dart
 

@@ -19,7 +19,8 @@ class SocialLoginUseCase {
     // Validate provider is a social provider
     if (provider == AuthProvider.email) {
       return const Left(
-        ValidationFailure(message: 'Email provider is not valid for social login'),
+        ValidationFailure(
+            message: 'Email provider is not valid for social login'),
       );
     }
 

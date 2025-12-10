@@ -21,7 +21,8 @@ class UserModel extends User {
       email: json['email'] as String,
       username: json['username'] as String,
       displayName: json['display_name'] as String?,
-      authProvider: AuthProviderExtension.fromValue(json['auth_provider'] as String),
+      authProvider:
+          AuthProviderExtension.fromValue(json['auth_provider'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)

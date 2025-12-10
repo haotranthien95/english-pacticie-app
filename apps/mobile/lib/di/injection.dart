@@ -41,23 +41,23 @@ Future<void> initializeDependencies() async {
 
   // Firebase Auth
   getIt.registerLazySingleton(() => firebase_auth.FirebaseAuth.instance);
-  
+
   // Google Sign In
   getIt.registerLazySingleton(() => GoogleSignIn(
-    scopes: ['email', 'profile'],
-  ));
+        scopes: ['email', 'profile'],
+      ));
 
   // ==================== Data Sources ====================
-  
+
   // Auth Data Sources
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(getIt()),
   );
-  
+
   getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(getIt()),
   );
-  
+
   getIt.registerLazySingleton<FirebaseAuthService>(
     () => FirebaseAuthServiceImpl(
       firebaseAuth: getIt(),
@@ -70,7 +70,7 @@ Future<void> initializeDependencies() async {
   // Audio Player/Recorder Services (will be added in Phase 3)
 
   // ==================== Repositories ====================
-  
+
   // AuthRepository
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
@@ -79,25 +79,25 @@ Future<void> initializeDependencies() async {
       firebaseAuthService: getIt(),
     ),
   );
-  
+
   // GameRepository (will be added in Phase 3)
   // UserRepository (will be added in Phase 5)
 
   // ==================== Use Cases ====================
-  
+
   // Auth Use Cases
   getIt.registerLazySingleton(() => LoginUseCase(getIt()));
   getIt.registerLazySingleton(() => RegisterUseCase(getIt()));
   getIt.registerLazySingleton(() => SocialLoginUseCase(getIt()));
   getIt.registerLazySingleton(() => LogoutUseCase(getIt()));
   getIt.registerLazySingleton(() => GetCurrentUserUseCase(getIt()));
-  
+
   // Game Use Cases (will be added in Phase 3)
   // User Use Cases (will be added in Phase 5)
 
   // ==================== BLoCs ====================
   // BLoCs are registered as factories (new instance each time)
-  
+
   // AuthBloc
   getIt.registerFactory(
     () => AuthBloc(
@@ -108,7 +108,7 @@ Future<void> initializeDependencies() async {
       getCurrentUserUseCase: getIt(),
     ),
   );
-  
+
   // GameBloc (will be added in Phase 3)
   // HistoryBloc (will be added in Phase 4)
   // ProfileBloc (will be added in Phase 5)

@@ -52,7 +52,9 @@ class _SplashScreenState extends State<SplashScreen> {
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: () {
-                              context.read<AuthBloc>().add(const LogoutRequested());
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const LogoutRequested());
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (_) => const LoginScreen(),

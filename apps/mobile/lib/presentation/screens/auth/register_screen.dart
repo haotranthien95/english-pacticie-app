@@ -245,7 +245,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Text(
                                 'Register',
@@ -260,8 +261,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         children: [
                           const Text('Already have an account? '),
                           TextButton(
-                            onPressed:
-                                isLoading ? null : () => Navigator.of(context).pop(),
+                            onPressed: isLoading
+                                ? null
+                                : () => Navigator.of(context).pop(),
                             child: const Text('Login'),
                           ),
                         ],

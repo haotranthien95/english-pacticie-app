@@ -13,6 +13,7 @@ class ApiEndpoints {
   static const String tags = '/game/tags';
   static const String randomSpeeches = '/game/speeches/random';
   static const String gameSessions = '/game/sessions';
+  static const String createSession = '/game/sessions';
   static String gameSessionDetail(String id) => '/game/sessions/$id';
 
   // Speech
