@@ -120,11 +120,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T012 [P] [US1] Implement password hashing, JWT generation, and validation utilities in app/utils/security.py
-- [ ] T013 [P] [US1] Create auth Pydantic schemas for register, login, social auth, token responses in app/schemas/auth.py
-- [ ] T014 [US1] Implement AuthService with registration, login, OAuth validation (Google/Apple/Facebook), JWT issuance in app/services/auth_service.py
-- [ ] T015 [US1] Create auth API endpoints: POST /auth/register, POST /auth/login, POST /auth/social, POST /auth/refresh in app/api/v1/auth.py
-- [ ] T016 [US1] Implement get_current_user dependency for JWT token validation in app/dependencies.py
+- [X] T012 [P] [US1] Implement password hashing, JWT generation, and validation utilities in app/utils/security.py
+- [X] T013 [P] [US1] Create auth Pydantic schemas for register, login, social auth, token responses in app/schemas/auth.py
+- [X] T014 [US1] Implement AuthService with registration, login, OAuth validation (Google/Apple/Facebook), JWT issuance in app/services/auth_service.py
+- [X] T015 [US1] Create auth API endpoints: POST /auth/register, POST /auth/login, POST /auth/social, POST /auth/refresh in app/api/v1/auth.py
+- [X] T016 [US1] Implement get_current_user dependency for JWT token validation in app/dependencies.py
 
 ---
 
@@ -148,17 +148,17 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T017 [US2] Create speech and game Pydantic schemas with validation in app/schemas/speech.py and app/schemas/game.py
-- [ ] T018 [P] [US2] Implement MinIO storage service for audio upload, signed URLs, bucket operations in app/services/storage_service.py
-- [ ] T019 [P] [US2] Implement SpeechService with random speech filtering (level, type, tags) and SQL queries in app/services/speech_service.py
-- [ ] T020 [P] [US2] Implement GameService for session creation with results in transaction in app/services/game_service.py
-- [ ] T021 [US2] Create speech provider base interface with ScoringResult and WordScore dataclasses in app/services/speech_provider/base.py
-- [ ] T022 [P] [US2] Create custom exception classes (SpeechProcessingError, AuthenticationError, etc.) for typed error handling in app/core/exceptions.py
-- [ ] T023 [P] [US2] Implement AudioBufferManager context manager for guaranteed buffer cleanup in app/utils/audio_buffer.py
-- [ ] T024 [US2] Implement Azure Speech Provider with pronunciation assessment and memory buffer audio handling in app/services/speech_provider/azure_provider.py
-- [ ] T025 [US2] Create speech provider factory that returns Azure provider for MVP in app/services/speech_provider/factory.py
-- [ ] T026 [US2] Create game API endpoints: POST /game/speeches/random, POST /game/sessions in app/api/v1/game.py
-- [ ] T027 [US2] Create speech scoring endpoint: POST /speech/score with multipart audio upload, AudioBufferManager for cleanup, and typed exception handling in app/api/v1/speech.py
+- [X] T017 [US2] Create speech and game Pydantic schemas with validation in app/schemas/speech.py and app/schemas/game.py
+- [X] T018 [P] [US2] Implement MinIO storage service for audio upload, signed URLs, bucket operations in app/services/storage_service.py
+- [X] T019 [P] [US2] Implement SpeechService with random speech filtering (level, type, tags) and SQL queries in app/services/speech_service.py
+- [X] T020 [P] [US2] Implement GameService for session creation with results in transaction in app/services/game_service.py
+- [X] T021 [US2] Create speech provider base interface with ScoringResult and WordScore dataclasses in app/services/speech_provider/base.py
+- [X] T022 [P] [US2] Create custom exception classes (SpeechProcessingError, AuthenticationError, etc.) for typed error handling in app/core/exceptions.py
+- [X] T023 [P] [US2] Implement AudioBufferManager context manager for guaranteed buffer cleanup in app/utils/audio_buffer.py
+- [X] T024 [US2] Implement Azure Speech Provider with pronunciation assessment and memory buffer audio handling in app/services/speech_provider/azure_provider.py
+- [X] T025 [US2] Create speech provider factory that returns Azure provider for MVP in app/services/speech_provider/factory.py
+- [X] T026 [US2] Create game API endpoints: POST /game/speeches/random, POST /game/sessions in app/api/v1/game.py
+- [X] T027 [US2] Create speech scoring endpoint: POST /speech/score with multipart audio upload, AudioBufferManager for cleanup, and typed exception handling in app/api/v1/speech.py
 
 ---
 
@@ -182,11 +182,11 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T026 [P] [US3] Create user Pydantic schemas for profile responses in app/schemas/user.py
-- [ ] T027 [P] [US3] Implement UserService with profile get/update/delete operations in app/services/user_service.py
-- [ ] T028 [US3] Create user API endpoints: GET /users/me, PUT /users/me, DELETE /users/me in app/api/v1/users.py
-- [ ] T029 [US3] Add game session history methods to GameService with pagination and filters in app/services/game_service.py
-- [ ] T030 [US3] Add game history endpoints: GET /game/sessions, GET /game/sessions/{id} to app/api/v1/game.py
+- [X] T026 [P] [US3] Create user Pydantic schemas for profile responses in app/schemas/user.py
+- [X] T027 [P] [US3] Implement UserService with profile get/update/delete operations in app/services/user_service.py
+- [X] T028 [US3] Create user API endpoints: GET /users/me, PUT /users/me, DELETE /users/me in app/api/v1/users.py
+- [X] T029 [US3] Add game session history methods to GameService with pagination and filters in app/services/game_service.py
+- [X] T030 [US3] Add game history endpoints: GET /game/sessions, GET /game/sessions/{id} to app/api/v1/game.py
 
 ---
 

@@ -11,6 +11,15 @@ import logging
 
 from app.config import settings
 from app.database import engine, Base
+from app.core.exceptions import (
+    ApplicationError,
+    AuthenticationError,
+    AuthorizationError,
+    NotFoundError,
+    ValidationError as AppValidationError,
+    SpeechProcessingError,
+    StorageError,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -72,6 +81,60 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+@app.exception_handler(AuthenticationError)
+async def authentication_exception_handler(request: Request, exc: AuthenticationError):
+    """Handle authentication errors"""
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": exc.message, **exc.details}
+    )
+
+
+@app.exception_handler(AuthorizationError)
+async def authorization_exception_handler(request: Request, exc: AuthorizationError):
+    """Handle authorization errors"""
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": exc.message, **exc.details}
+    )
+
+
+@app.exception_handler(NotFoundError)
+async def not_found_exception_handler(request: Request, exc: NotFoundError):
+    """Handle not found errors"""
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={"detail": exc.message, **exc.details}
+    )
+
+
+@app.exception_handler(AppValidationError)
+async def app_validation_exception_handler(request: Request, exc: AppValidationError):
+    """Handle application validation errors"""
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"detail": exc.message, **exc.details}
+    )
+
+
+@app.exception_handler(SpeechProcessingError)
+async def speech_processing_exception_handler(request: Request, exc: SpeechProcessingError):
+    """Handle speech processing errors"""
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"detail": exc.message, **exc.details}
+    )
+
+
+@app.exception_handler(StorageError)
+async def storage_exception_handler(request: Request, exc: StorageError):
+    """Handle storage errors"""
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": exc.message, **exc.details}
+    )
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors"""
@@ -120,10 +183,18 @@ async def root():
     }
 
 
-# Import and include routers will be added here as we build features
-# from app.api.v1 import auth, users, tags, game, speech
-# app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-# app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+# Import and include routers
+from app.api.v1 import auth, game, speech, users
+
+# Mount API v1 routers
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(game.router, prefix="/api/v1")
+app.include_router(speech.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
+
+# Additional routers will be added here as we build features
+# from app.api.v1 import admin
+# app.include_router(admin.router, prefix="/api/v1")
 # ...
 
 
