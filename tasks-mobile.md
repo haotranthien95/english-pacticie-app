@@ -296,7 +296,7 @@ Foundation ──────┐
 - [ ] M074 Prepare app icons and splash screens
 - [ ] M075 Configure app signing for Android and iOS
 - [ ] M076 Create release builds and test on devices
-- [ ] M077 Write README with setup and development guide
+- [X] M077 Write README with setup and development guide
 
 ---
 
