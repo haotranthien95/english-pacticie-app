@@ -1,17 +1,26 @@
 # Mobile Implementation Plan
 
 **Project**: English Learning App - Flutter Mobile Application  
+**Version**: 1.2.0 (Updated with Session 2025-12-10 clarifications)  
 **Date**: December 10, 2025  
 **Technology Stack**: Flutter 3.24.5, Dart 3.5.4, BLoC, Hive, Firebase Auth  
-**Based on**: [spec/mobile.md](../spec/mobile.md)
+**Based on**: [spec/mobile.md](../spec/mobile.md) v1.2.0
 
 ## Key Architectural Decisions (from mobile.md Clarifications)
 
+### Session 2025-12-09 (Original 5)
 1. **OAuth Integration**: Firebase SDKs for token acquisition (google_sign_in, sign_in_with_apple) - Mobile acquires OAuth tokens, sends to backend /auth/social for JWT issuance
 2. **Audio Recording**: Memory buffer only - Stream audio bytes directly to backend API, never write to filesystem (most secure, no cleanup needed)
 3. **Offline Strategy**: Queue and sync on reconnect - Store completed sessions in Hive, automatically sync to backend when connection restored (ensures no data loss)
 4. **Tablet Layouts**: Responsive scaling with breakpoints - Use MediaQuery to detect screen size, apply different layouts for phone/tablet (7"+/10"+) breakpoints
 5. **Pronunciation Feedback**: Immediate per-sentence feedback - Show pronunciation score after each sentence before advancing to next (best for learning feedback loop)
+
+### Session 2025-12-10 (New Clarifications)
+6. **BLoC Event Naming**: Imperative (command) style - Use LoginRequested, GameStarted (not UserLoggedIn, GameWasStarted). Events represent user intent/commands.
+7. **Offline Retry Strategy**: Exponential backoff on sync failure - Retry at 1s, 2s, 4s, 8s intervals then fail. Balances persistence with UX, failed sessions logged but don't block gameplay.
+8. **Tablet Breakpoint**: ≥600dp for tablet layout - Material Design standard, use MediaQuery.of(context).size.width >= 600 to switch between phone/tablet layouts.
+9. **Audio Buffer Limit**: 10MB maximum - Sufficient for ~2 minutes at 64kbps, 10x safety margin for per-sentence recording (typical sentences <12 seconds).
+10. **Pronunciation API Endpoint**: POST /speech/score - Multipart upload (audio file + reference_text + language), returns SpeechScoreResponse with word-level scores
 
 ---
 
@@ -1829,6 +1838,11 @@ Future<void> deleteAccount() async {
 import 'package:equatable/equatable.dart';
 import '../../../domain/repositories/auth_repository.dart';
 
+// IMPORTANT: BLoC Event Naming Convention (from Session 2025-12-10 clarifications)
+// Use IMPERATIVE (command) style: LoginRequested, GameStarted
+// NOT past tense: UserLoggedIn, GameWasStarted
+// Events represent user intent/commands, not facts
+
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
 
@@ -2483,10 +2497,39 @@ flutter pub run build_runner build --delete-conflicting-outputs
    - Update syncStatus to 'syncing'
    - POST session to backend /game/sessions
    - On success: Update syncStatus to 'synced', keep for history
-   - On failure: Revert syncStatus to 'pending', retry later
+   - **On failure**: Revert syncStatus to 'pending', apply exponential backoff retry
 6. Show sync status indicator in UI ("X sessions pending sync")
 
-**Benefits**: Ensures no data loss, works seamlessly offline, automatic background sync
+**Exponential Backoff Retry Strategy (from Session 2025-12-10 clarifications)**:
+When sync fails after reconnection, retry with exponential delays:
+- Attempt 1: Immediate (1 second delay)
+- Attempt 2: 2 seconds delay
+- Attempt 3: 4 seconds delay  
+- Attempt 4: 8 seconds delay
+- After 4 attempts: Mark as failed, log error, don't block new gameplay
+
+Implementation pattern:
+```dart
+class SyncService {
+  Future<void> syncSessionWithRetry(GameSession session, int attempt) async {
+    if (attempt > 4) {
+      await _logFailedSession(session);
+      return; // Give up after 4 attempts
+    }
+    
+    try {
+      await _remoteDataSource.saveGameSession(session);
+      await _localDataSource.updateSyncStatus(session.id, 'synced');
+    } catch (e) {
+      final delaySeconds = math.pow(2, attempt - 1).toInt(); // 1, 2, 4, 8
+      await Future.delayed(Duration(seconds: delaySeconds));
+      await syncSessionWithRetry(session, attempt + 1);
+    }
+  }
+}
+```
+
+**Benefits**: Ensures no data loss, works seamlessly offline, automatic background sync with retry resilience
 
 **Dependencies**: Task 4.2
 
@@ -2682,22 +2725,64 @@ dependencies:
 - Recording duration tracking
 - Amplitude monitoring for visual feedback
 - **Memory management**: Properly dispose of audio buffers after API upload
-- Stream audio bytes to backend POST /game/speech-to-text endpoint
+- Stream audio bytes to backend POST /speech/score endpoint
+- **Buffer size validation**: Enforce 10MB maximum limit (from Session 2025-12-10 clarifications)
 
 **Recording Flow**:
 1. User taps record button
 2. Start recording to memory buffer (Uint8List or Stream<List<int>>)
 3. Monitor recording duration and amplitude
-4. On stop: Get recorded bytes from buffer
-5. Immediately send bytes to backend API (multipart/form-data)
-6. Dispose audio buffer after successful upload
-7. Never persist audio to filesystem
+4. **Validate buffer size**: Check if exceeds 10MB limit during recording
+5. On stop: Get recorded bytes from buffer
+6. Immediately send bytes to backend API (multipart/form-data)
+7. Dispose audio buffer after successful upload
+8. Never persist audio to filesystem
+
+**Buffer Limit Implementation (Clarification #9)**:
+```dart
+class AudioRecorderService {
+  static const int MAX_BUFFER_SIZE = 10 * 1024 * 1024; // 10MB
+  static const int TYPICAL_SENTENCE_SIZE = 1 * 1024 * 1024; // ~1MB for 12 seconds
+  
+  Stream<List<int>>? _audioStream;
+  int _currentBufferSize = 0;
+  
+  Future<void> startRecording() async {
+    _currentBufferSize = 0;
+    _audioStream = _recorder.startStream();
+    
+    // Monitor buffer size during recording
+    _audioStream!.listen((chunk) {
+      _currentBufferSize += chunk.length;
+      
+      if (_currentBufferSize > MAX_BUFFER_SIZE) {
+        stopRecording(); // Auto-stop if exceeds limit
+        throw AudioBufferLimitExceeded(
+          'Recording exceeded 10MB limit. Maximum recording time: ~2 minutes at 64kbps.'
+        );
+      }
+    });
+  }
+  
+  Future<Uint8List> stopRecording() async {
+    final bytes = await _recorder.stop();
+    
+    // Validate final size before upload
+    if (bytes.length > MAX_BUFFER_SIZE) {
+      throw AudioBufferLimitExceeded('Audio exceeds 10MB limit');
+    }
+    
+    return bytes;
+  }
+}
+```
 
 **Benefits**:
 - Maximum security (no audio files left on device)
 - No cleanup required (no temp files to delete)
 - Faster processing (no file I/O overhead)
 - Smaller attack surface (no file permissions needed)
+- **Buffer limit**: 10MB sufficient for ~2 minutes at 64kbps, 10x safety margin for typical per-sentence recording (<12 seconds)
 
 **Dependencies**: Task 6.1
 
@@ -2705,14 +2790,41 @@ dependencies:
 
 ### Task 6.3: Integrate Speech-to-Text API
 
-**Description**: Implement speech-to-text transcription using backend API.
+**Description**: Implement speech-to-text transcription using backend API. Use POST /speech/score endpoint (from Session 2025-12-10 clarifications) for pronunciation scoring with word-level feedback.
 
 **Acceptance Criteria**:
-- Upload audio file to backend
-- Receive transcription text
-- Receive pronunciation score
-- Handle transcription errors
+- Upload audio buffer to backend POST /speech/score (multipart/form-data)
+- Send parameters: audio file, reference_text, language
+- Receive SpeechScoreResponse with:
+  - recognizedText (transcription)
+  - pronunciationScore (0-100)
+  - accuracyScore, fluencyScore, completenessScore (optional)
+  - wordScores array (word-level scores with error types)
+  - provider (Azure)
+- Handle transcription errors (400, 422, 503)
 - Loading states
+- Timeout handling (10 second API timeout)
+
+**API Endpoint (Clarification #10)**:
+```dart
+// Already defined in api_client.dart (see mobile.md spec)
+@POST('/speech/score')
+@MultiPart()
+Future<SpeechScoreResponse> scorePronunciation(
+  @Part(name: 'audio') File audio,
+  @Part(name: 'reference_text') String referenceText,
+  @Part(name: 'language') String language,
+);
+```
+
+**Implementation Flow**:
+1. Convert memory buffer (Uint8List) to File object (in-memory)
+2. Create multipart request with audio + reference_text + language
+3. POST to /speech/score endpoint
+4. Parse SpeechScoreResponse JSON
+5. Extract pronunciation score, recognized text, word scores
+6. Update game state with results
+7. Display immediate per-sentence feedback to user
 
 **Commands**:
 ```bash
@@ -2943,19 +3055,45 @@ flutter run
 **Description**: Add responsive layout system using MediaQuery breakpoints to support phone and tablet screen sizes.
 
 **Acceptance Criteria**:
-- **Screen size breakpoints**:
+- **Screen size breakpoints** (from Session 2025-12-10 clarifications):
   - Phone: < 600dp width (4.7" - 6.7" screens)
-  - Small Tablet: 600-840dp width (7"+ screens)
+  - Small Tablet: 600-840dp width (7"+ screens) - **Material Design standard: ≥600dp triggers tablet layout**
   - Large Tablet: > 840dp width (10"+ screens)
 - **MediaQuery-based layout detection**:
   - Create responsive utility class with screen size detection
   - Methods: `isPhone()`, `isSmallTablet()`, `isLargeTablet()`
   - Dynamic layout selection based on breakpoint
+  - **Implementation**: `MediaQuery.of(context).size.width >= 600` for tablet layout switch
 - **Adaptive layouts per screen**:
   - **Game Config Screen**: Phone (single column), Tablet (two-column grid for tags)
   - **Game Play Screen**: Phone (portrait), Tablet (landscape with side-by-side layout)
   - **History Screen**: Phone (list view), Tablet (master-detail split view)
   - **Profile Screen**: Phone (scrollable), Tablet (card-based grid layout)
+
+**Implementation Example (Clarification #8)**:
+```dart
+class ResponsiveUtils {
+  static bool isTablet(BuildContext context) {
+    // Material Design standard: >=600dp for tablet layouts
+    return MediaQuery.of(context).size.width >= 600;
+  }
+  
+  static bool isPhone(BuildContext context) => !isTablet(context);
+  
+  static bool isLargeTablet(BuildContext context) {
+    return MediaQuery.of(context).size.width >= 840;
+  }
+}
+
+// Usage in widgets:
+Widget build(BuildContext context) {
+  final isTablet = ResponsiveUtils.isTablet(context);
+  
+  return isTablet
+    ? _buildTabletLayout()  // 600dp+ uses tablet layout
+    : _buildPhoneLayout();  // <600dp uses phone layout
+}
+```
 - **Typography scaling**: Adjust font sizes for larger screens (1.1x for small tablet, 1.2x for large tablet)
 - **Touch target sizing**: Maintain minimum 48x48dp touch targets across all devices
 - **Spacing adjustments**: Increase padding/margins on larger screens for better visual hierarchy

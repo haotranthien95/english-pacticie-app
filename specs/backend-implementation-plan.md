@@ -1,17 +1,23 @@
 # Backend Implementation Plan
 
 **Project**: English Learning App - Backend API & Admin System  
+**Version**: 1.2.0 (Updated with Session 2025-12-10 clarifications)  
 **Date**: December 10, 2025  
 **Technology Stack**: Python 3.12, FastAPI, SQLAlchemy, PostgreSQL, MinIO, Azure Speech SDK  
-**Based on**: [spec/backend.md](../spec/backend.md)
+**Based on**: [spec/backend.md](../spec/backend.md) v1.2.0
 
 ## Key Architectural Decisions (from backend.md Clarifications)
 
+### Session 2025-12-09 (Original 5)
 1. **Authentication**: JWT-based custom implementation (HS256) - No Firebase Auth dependency
 2. **Audio Storage**: MinIO (self-hosted S3-compatible) - User recordings handled as temporary memory buffers, deleted immediately after processing
 3. **Speech-to-Text**: Azure Cognitive Services Speech SDK only (built-in pronunciation assessment)
 4. **Admin Panel**: SQLAdmin auto-generated admin (FastAPI plugin with automatic UI)
 5. **OAuth Flow**: Backend validates OAuth tokens directly, issues JWT tokens
+
+### Session 2025-12-10 (New Clarifications)
+6. **Error Handling**: Service methods raise typed exceptions (AuthenticationError, SpeechProcessingError, etc.) - FastAPI exception handlers catch and convert to appropriate HTTP responses. More Pythonic than Result types.
+7. **Buffer Cleanup**: Context manager pattern (with statement) for guaranteed audio buffer deletion - Ensures cleanup even on exceptions, most reliable for security compliance
 
 ---
 
@@ -839,6 +845,67 @@ def get_speech_provider() -> SpeechProvider:
 6. Return scores to mobile
 7. Memory buffer garbage collected (no file writes)
 
+**Implementation Pattern (from Session 2025-12-10 clarifications)**:
+
+**Context Manager for Buffer Cleanup**:
+```python
+class AudioBufferManager:
+    """Context manager for guaranteed audio buffer cleanup (Clarification #7)"""
+    def __init__(self):
+        self.buffer = io.BytesIO()
+    
+    def __enter__(self):
+        return self.buffer
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Guaranteed cleanup even on exception
+        self.buffer.close()
+        del self.buffer
+        return False
+
+@router.post("/score")
+async def score_pronunciation(
+    audio: UploadFile,
+    reference_text: str,
+    language: str,
+):
+    try:
+        with AudioBufferManager() as buffer:
+            # Read audio into managed buffer
+            buffer.write(await audio.read())
+            buffer.seek(0)
+            
+            # Process with Azure (may raise exceptions)
+            result = await speech_service.score_pronunciation(
+                buffer.read(), reference_text, language
+            )
+            # Buffer automatically deleted even if exception occurs
+            
+        return result
+    except SpeechProcessingError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+```
+
+**Error Handling Pattern (Clarification #6)**:
+Service methods raise typed exceptions, FastAPI handlers convert to HTTP responses:
+```python
+# Service layer - raise typed exceptions
+class SpeechService:
+    async def score_pronunciation(self, audio_bytes, ref_text, lang):
+        try:
+            result = await azure_provider.score(audio_bytes, ref_text, lang)
+            return result
+        except AzureAPIError as e:
+            raise SpeechProcessingError(f"Azure API failed: {e}")
+        except TimeoutError:
+            raise SpeechProcessingError("Request timed out")
+
+# API layer - convert to HTTP
+@app.exception_handler(SpeechProcessingError)
+async def speech_error_handler(request, exc):
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
+```
+
 ---
 
 #### Task 7.5: Alternative Providers (DEFERRED - Post-MVP)
@@ -1168,6 +1235,79 @@ faker>=22.0.0
 - StorageService tests: upload, signed URLs
 - Mock database and external dependencies
 
+**Testing Strategy (from Session 2025-12-10 clarifications)**:
+
+**Mocking Approach (Clarification #6)**:
+- **Simple dependencies** (database, HTTP clients): Use `pytest-mock` or `unittest.mock`
+- **Complex stateful services** (Azure Speech SDK): Create manual test doubles (fake implementations)
+
+```python
+# Example: pytest-mock for simple dependencies
+def test_get_user(mocker):
+    mock_db = mocker.patch('app.database.Session')
+    mock_db.query.return_value.filter.return_value.first.return_value = User(id=1)
+    
+    result = user_service.get_user(1)
+    assert result.id == 1
+
+# Example: Manual test double for Azure Speech SDK (complex stateful)
+class FakeAzureSpeechProvider(SpeechProvider):
+    """Test double for Azure SDK - simpler than mocking SDK internals"""
+    def __init__(self):
+        self.call_count = 0
+    
+    async def score_pronunciation(self, audio, ref_text, lang):
+        self.call_count += 1
+        return ScoringResult(
+            recognized_text=ref_text,
+            pronunciation_score=85.0,
+            provider_name="fake_azure"
+        )
+
+def test_speech_service_with_fake_provider():
+    fake_provider = FakeAzureSpeechProvider()
+    service = SpeechService(provider=fake_provider)
+    
+    result = await service.score("audio_bytes", "hello", "en-US")
+    assert fake_provider.call_count == 1
+    assert result.pronunciation_score == 85.0
+```
+
+**Exception Testing (Clarification #6)**:
+All service methods should raise typed exceptions, test both success and error paths:
+```python
+def test_speech_service_raises_on_azure_error():
+    # Fake provider that simulates Azure failure
+    fake_provider = FakeAzureSpeechProvider(should_fail=True)
+    service = SpeechService(provider=fake_provider)
+    
+    with pytest.raises(SpeechProcessingError) as exc_info:
+        await service.score("invalid_audio", "text", "en-US")
+    assert "Azure API failed" in str(exc_info.value)
+```
+
+**Buffer Cleanup Testing (Clarification #7)**:
+Verify context manager guarantees cleanup even on exceptions:
+```python
+def test_audio_buffer_cleanup_on_exception():
+    buffer_was_closed = False
+    
+    class TestableBufferManager(AudioBufferManager):
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            nonlocal buffer_was_closed
+            buffer_was_closed = True
+            return super().__exit__(exc_type, exc_val, exc_tb)
+    
+    try:
+        with TestableBufferManager() as buffer:
+            buffer.write(b"test_audio")
+            raise ValueError("Simulated error")
+    except ValueError:
+        pass
+    
+    assert buffer_was_closed, "Buffer must be cleaned up even on exception"
+```
+
 **Files to Create**:
 - `tests/unit/services/test_auth_service.py`
 - `tests/unit/services/test_user_service.py`
@@ -1176,6 +1316,7 @@ faker>=22.0.0
 - `tests/unit/services/test_tag_service.py`
 - `tests/unit/services/test_import_service.py`
 - `tests/unit/services/test_storage_service.py`
+- `tests/unit/utils/test_audio_buffer_manager.py` (NEW - context manager tests)
 
 **Target**: 80%+ coverage for services layer
 
