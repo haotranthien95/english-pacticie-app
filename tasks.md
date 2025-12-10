@@ -238,9 +238,9 @@ Foundation ───────┤
 
 ### Tasks
 
-- [ ] T036 [P] [US5] Create audio upload endpoint: POST /admin/import/audio with multipart handling in app/api/v1/admin/imports.py
-- [ ] T037 [US5] Create CSV import endpoint: POST /admin/import/csv with validation and transaction in app/api/v1/admin/imports.py
-- [ ] T038 [US5] Implement ImportService with audio upload, CSV parsing, and bulk creation logic in app/services/import_service.py
+- [X] T036 [P] [US5] Create audio upload endpoint: POST /admin/import/audio with multipart handling in app/api/v1/admin/imports.py
+- [X] T037 [US5] Create CSV import endpoint: POST /admin/import/csv with validation and transaction in app/api/v1/admin/imports.py
+- [X] T038 [US5] Implement ImportService with audio upload, CSV parsing, and bulk creation logic in app/services/import_service.py
 
 ---
 

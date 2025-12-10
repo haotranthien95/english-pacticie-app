@@ -194,7 +194,7 @@ async def root():
 
 # Import and include routers
 from app.api.v1 import auth, game, speech, users
-from app.api.v1.admin import speeches as admin_speeches, tags as admin_tags
+from app.api.v1.admin import speeches as admin_speeches, tags as admin_tags, imports as admin_imports
 
 # Mount API v1 routers
 app.include_router(auth.router, prefix="/api/v1")
@@ -205,6 +205,7 @@ app.include_router(users.router, prefix="/api/v1")
 # Mount admin API routers
 app.include_router(admin_speeches.router, prefix="/api/v1")
 app.include_router(admin_tags.router, prefix="/api/v1")
+app.include_router(admin_imports.router, prefix="/api/v1")
 
 # Mount SQLAdmin panel
 from sqladmin import Admin
