@@ -188,11 +188,11 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M041 [P] [US3] Create history use cases (GetSessions, GetSessionDetail) in lib/domain/usecases/game/
-- [ ] M042 [P] [US3] Add session history methods to GameRepositoryImpl in lib/data/repositories/game_repository_impl.dart
-- [ ] M043 [US3] Create HistoryBloc for session list with pagination in lib/presentation/blocs/history/history_bloc.dart
-- [ ] M044 [US3] Create History screen with filter chips and session cards in lib/presentation/screens/history/history_screen.dart
-- [ ] M045 [US3] Create Session Detail screen with statistics and speech breakdown in lib/presentation/screens/history/session_detail_screen.dart
+- [X] M041 [P] [US3] Create history use cases (GetSessions, GetSessionDetail) in lib/domain/usecases/game/
+- [X] M042 [P] [US3] Add session history methods to GameRepositoryImpl in lib/data/repositories/game_repository_impl.dart
+- [X] M043 [US3] Create HistoryBloc for session list with pagination in lib/presentation/blocs/history/history_bloc.dart
+- [X] M044 [US3] Create History screen with filter chips and session cards in lib/presentation/screens/history/history_screen.dart
+- [X] M045 [US3] Create Session Detail screen with statistics and speech breakdown in lib/presentation/screens/history/session_detail_screen.dart
 
 ---
 

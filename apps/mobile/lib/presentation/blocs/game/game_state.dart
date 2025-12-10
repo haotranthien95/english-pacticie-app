@@ -118,7 +118,6 @@ class GameScoreReady extends GameState {
   List<Object?> get props => [previousState, scoreResponse];
 }
 
-
 /// Game is paused
 class GamePaused extends GameState {
   final GameReady previousState;

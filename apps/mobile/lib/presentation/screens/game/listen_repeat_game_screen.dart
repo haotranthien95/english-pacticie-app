@@ -152,9 +152,7 @@ class _ListenRepeatGameView extends StatelessWidget {
                   // Audio replay button
                   IconButton(
                     icon: Icon(
-                      state.isAudioPlaying
-                          ? Icons.volume_up
-                          : Icons.replay,
+                      state.isAudioPlaying ? Icons.volume_up : Icons.replay,
                       size: 40,
                     ),
                     color: Theme.of(context).colorScheme.primary,
@@ -320,9 +318,7 @@ class _ListenRepeatGameView extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      context
-                          .read<GameBloc>()
-                          .add(const ScoreAcknowledged());
+                      context.read<GameBloc>().add(const ScoreAcknowledged());
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),

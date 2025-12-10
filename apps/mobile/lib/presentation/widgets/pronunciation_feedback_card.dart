@@ -18,8 +18,7 @@ class PronunciationFeedbackCard extends StatefulWidget {
       _PronunciationFeedbackCardState();
 }
 
-class _PronunciationFeedbackCardState
-    extends State<PronunciationFeedbackCard> {
+class _PronunciationFeedbackCardState extends State<PronunciationFeedbackCard> {
   bool _showDetailedMetrics = false;
 
   @override
@@ -287,9 +286,7 @@ class _PronunciationFeedbackCardState
                 ),
                 const SizedBox(width: 8),
                 Icon(
-                  _showDetailedMetrics
-                      ? Icons.expand_less
-                      : Icons.expand_more,
+                  _showDetailedMetrics ? Icons.expand_less : Icons.expand_more,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ],
@@ -360,9 +357,8 @@ class _PronunciationFeedbackCardState
     // Convert snake_case to Title Case
     return key
         .split('_')
-        .map((word) => word.isEmpty
-            ? ''
-            : word[0].toUpperCase() + word.substring(1))
+        .map((word) =>
+            word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
         .join(' ');
   }
 

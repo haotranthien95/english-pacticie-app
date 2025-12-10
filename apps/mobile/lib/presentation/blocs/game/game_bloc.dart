@@ -382,7 +382,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     );
 
     // Update state with result
-    final newResults = List<GameResult>.from(previousState.results)..add(result);
+    final newResults = List<GameResult>.from(previousState.results)
+      ..add(result);
     final newStreakCount = isCorrect ? previousState.streakCount + 1 : 0;
     final newIndex = previousState.currentIndex + 1;
 
