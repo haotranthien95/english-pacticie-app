@@ -1,9 +1,10 @@
 # Backend Implementation Tasks
 
 **Feature**: English Learning App - Backend API & Admin System  
+**Version**: 1.2.0 (Updated with Session 2025-12-10 clarifications)  
 **Date**: December 10, 2025  
 **Tech Stack**: Python 3.12, FastAPI, PostgreSQL, MinIO, Azure Speech SDK  
-**Based on**: specs/backend-implementation-plan.md
+**Based on**: specs/backend-implementation-plan.md v1.2.0
 
 ---
 
@@ -152,10 +153,12 @@ Foundation ───────┤
 - [ ] T019 [P] [US2] Implement SpeechService with random speech filtering (level, type, tags) and SQL queries in app/services/speech_service.py
 - [ ] T020 [P] [US2] Implement GameService for session creation with results in transaction in app/services/game_service.py
 - [ ] T021 [US2] Create speech provider base interface with ScoringResult and WordScore dataclasses in app/services/speech_provider/base.py
-- [ ] T022 [US2] Implement Azure Speech Provider with pronunciation assessment and memory buffer audio handling in app/services/speech_provider/azure_provider.py
-- [ ] T023 [US2] Create speech provider factory that returns Azure provider for MVP in app/services/speech_provider/factory.py
-- [ ] T024 [US2] Create game API endpoints: POST /game/speeches/random, POST /game/sessions in app/api/v1/game.py
-- [ ] T025 [US2] Create speech scoring endpoint: POST /speech/score with multipart audio upload in app/api/v1/speech.py
+- [ ] T022 [P] [US2] Create custom exception classes (SpeechProcessingError, AuthenticationError, etc.) for typed error handling in app/core/exceptions.py
+- [ ] T023 [P] [US2] Implement AudioBufferManager context manager for guaranteed buffer cleanup in app/utils/audio_buffer.py
+- [ ] T024 [US2] Implement Azure Speech Provider with pronunciation assessment and memory buffer audio handling in app/services/speech_provider/azure_provider.py
+- [ ] T025 [US2] Create speech provider factory that returns Azure provider for MVP in app/services/speech_provider/factory.py
+- [ ] T026 [US2] Create game API endpoints: POST /game/speeches/random, POST /game/sessions in app/api/v1/game.py
+- [ ] T027 [US2] Create speech scoring endpoint: POST /speech/score with multipart audio upload, AudioBufferManager for cleanup, and typed exception handling in app/api/v1/speech.py
 
 ---
 
@@ -259,32 +262,34 @@ Foundation ───────┤
 - [ ] T040 [P] Add rate limiting with SlowAPI to protect endpoints in app/main.py
 - [ ] T041 [P] Set up logging with structlog for JSON output in app/utils/logging.py
 - [ ] T042 [P] Add Prometheus metrics instrumentation in app/main.py
-- [ ] T043 [P] Write unit tests for services (auth, speech, game, import) in tests/unit/
-- [ ] T044 [P] Write integration tests for API endpoints in tests/integration/
-- [ ] T045 [P] Write E2E tests for complete user flows in tests/e2e/
-- [ ] T046 Run security scans with Bandit and Safety
-- [ ] T047 Create production Dockerfile with multi-stage build
-- [ ] T048 Create deployment configuration (K8s manifests or docker-compose.prod.yml) in deploy/
-- [ ] T049 Write API documentation and deployment guide in README.md and docs/
+- [ ] T043 [P] Write unit tests for services (auth, speech, game, import) with pytest-mock for simple deps and manual test doubles for Azure SDK in tests/unit/
+- [ ] T044 [P] Write unit tests for AudioBufferManager context manager ensuring cleanup on exceptions in tests/unit/utils/test_audio_buffer.py
+- [ ] T045 [P] Write unit tests for typed exception handling (service raises, API converts to HTTP) in tests/unit/api/test_exception_handlers.py
+- [ ] T046 [P] Write integration tests for API endpoints in tests/integration/
+- [ ] T047 [P] Write E2E tests for complete user flows in tests/e2e/
+- [ ] T048 Run security scans with Bandit and Safety
+- [ ] T049 Create production Dockerfile with multi-stage build
+- [ ] T050 Create deployment configuration (K8s manifests or docker-compose.prod.yml) in deploy/
+- [ ] T051 Write API documentation and deployment guide in README.md and docs/
 
 ---
 
 ## Task Summary
 
-**Total Tasks**: 49
+**Total Tasks**: 51 (was 49, added 2 for Session 2025-12-10 clarifications)
 
 ### By Phase:
 - Phase 1 (Setup): 5 tasks
 - Phase 2 (Foundation): 6 tasks  
 - Phase 3 (US1 - Auth): 5 tasks
-- Phase 4 (US2 - Game Play): 9 tasks
+- Phase 4 (US2 - Game Play): 11 tasks (was 9, added 2 for error handling + buffer cleanup)
 - Phase 5 (US3 - History): 5 tasks
 - Phase 6 (US4 - Admin): 5 tasks
 - Phase 7 (US5 - Import): 3 tasks
-- Phase 8 (Polish): 11 tasks
+- Phase 8 (Polish): 13 tasks (was 11, added 2 for context manager + exception testing)
 
 ### By Priority:
-- P1 (Highest): 14 tasks (US1 + US2)
+- P1 (Highest): 16 tasks (US1 + US2, increased from 14)
 - P2 (High): 10 tasks (US3 + US4)
 - P3 (Medium): 3 tasks (US5)
 - Foundation/Polish: 22 tasks

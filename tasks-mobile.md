@@ -1,9 +1,10 @@
 # Mobile Implementation Tasks
 
 **Feature**: English Learning App - Flutter Mobile Application  
+**Version**: 1.2.0 (Updated with Session 2025-12-10 clarifications)  
 **Date**: December 10, 2025  
 **Tech Stack**: Flutter 3.24.5, Dart 3.5.4, BLoC, Hive, Firebase Auth  
-**Based on**: specs/mobile-implementation-plan.md
+**Based on**: specs/mobile-implementation-plan.md v1.2.0
 
 ---
 
@@ -106,7 +107,7 @@ Foundation ──────┐
 - [ ] M014 [US1] Implement remote auth data source (API calls for register, login, social) in lib/data/datasources/remote/auth_remote_datasource.dart
 - [ ] M015 [US1] Implement Firebase Auth service for OAuth token acquisition (Google/Apple/Facebook) in lib/data/datasources/remote/firebase_auth_service.dart
 - [ ] M016 [US1] Implement AuthRepositoryImpl combining local and remote sources in lib/data/repositories/auth_repository_impl.dart
-- [ ] M017 [US1] Create AuthBloc with events and states for all auth flows in lib/presentation/blocs/auth/auth_bloc.dart
+- [ ] M017 [US1] Create AuthBloc with events (imperative naming: LoginRequested, not UserLoggedIn) and states for all auth flows in lib/presentation/blocs/auth/auth_bloc.dart
 - [ ] M018 [US1] Create Login screen with email/password form and social buttons in lib/presentation/screens/auth/login_screen.dart
 - [ ] M019 [US1] Create Register screen with email/password/name form in lib/presentation/screens/auth/register_screen.dart
 - [ ] M020 [US1] Create Splash screen with auto-login logic in lib/presentation/screens/auth/splash_screen.dart
@@ -144,7 +145,7 @@ Foundation ──────┐
 - [ ] M023 [P] [US2] Create GameRepository interface in lib/domain/repositories/game_repository.dart
 - [ ] M024 [P] [US2] Create game use cases (GetTags, GetRandomSpeeches, CreateSession, SyncSessions) in lib/domain/usecases/game/
 - [ ] M025 [P] [US2] Create TagModel, SpeechModel, GameSessionModel with JSON serialization in lib/data/models/
-- [ ] M026 [US2] Implement game local data source with offline queue and sync logic in lib/data/datasources/local/game_local_datasource.dart
+- [ ] M026 [US2] Implement game local data source with offline queue and exponential backoff retry (1s, 2s, 4s, 8s) in lib/data/datasources/local/game_local_datasource.dart
 - [ ] M027 [US2] Implement game remote data source (tags, speeches, sessions APIs) in lib/data/datasources/remote/game_remote_datasource.dart
 - [ ] M028 [US2] Implement GameRepositoryImpl with offline-first strategy in lib/data/repositories/game_repository_impl.dart
 - [ ] M029 [US2] Create GameConfigBloc for game setup screen in lib/presentation/blocs/game/game_config_bloc.dart
@@ -153,16 +154,16 @@ Foundation ──────┐
 #### Listen-Only Mode
 
 - [ ] M031 [P] [US2] Create audio player service using just_audio in lib/data/datasources/local/audio_player_service.dart
-- [ ] M032 [P] [US2] Create GameBloc for listen-only mode with swipe events in lib/presentation/blocs/game/game_bloc.dart
+- [ ] M032 [P] [US2] Create GameBloc for listen-only mode with imperative swipe events (SwipeLeftRequested, SwipeRightRequested) in lib/presentation/blocs/game/game_bloc.dart
 - [ ] M033 [US2] Create Listen-Only game play screen with swipe cards and streak counter in lib/presentation/screens/game/listen_only_game_screen.dart
 - [ ] M034 [US2] Create game result summary screen with statistics in lib/presentation/screens/game/game_summary_screen.dart
 
 #### Listen-and-Repeat Mode
 
 - [ ] M035 [P] [US2] Request microphone permissions (Android/iOS) in AndroidManifest.xml and Info.plist
-- [ ] M036 [US2] Create microphone recorder service with memory buffer (no file writes) in lib/data/datasources/local/audio_recorder_service.dart
-- [ ] M037 [US2] Implement speech-to-text remote data source (upload audio bytes) in lib/data/datasources/remote/speech_remote_datasource.dart
-- [ ] M038 [US2] Update GameBloc with recording and transcription events in lib/presentation/blocs/game/game_bloc.dart
+- [ ] M036 [US2] Create microphone recorder service with memory buffer (no file writes) and 10MB limit validation in lib/data/datasources/local/audio_recorder_service.dart
+- [ ] M037 [US2] Implement speech-to-text remote data source (POST /speech/score with audio bytes, returns SpeechScoreResponse) in lib/data/datasources/remote/speech_remote_datasource.dart
+- [ ] M038 [US2] Update GameBloc with imperative recording events (RecordingStarted, RecordingStopped, TranscriptionRequested) in lib/presentation/blocs/game/game_bloc.dart
 - [ ] M039 [US2] Create Listen-and-Repeat game screen with record button and pronunciation feedback in lib/presentation/screens/game/listen_repeat_game_screen.dart
 - [ ] M040 [US2] Create pronunciation feedback card with immediate per-sentence scoring display in lib/presentation/widgets/game/pronunciation_feedback_card.dart
 
@@ -257,9 +258,9 @@ Foundation ──────┐
 ### Tasks
 
 - [ ] M056 [P] Create theme system with light and dark ThemeData in lib/core/theme/app_theme.dart
-- [ ] M057 [P] Create responsive utils with screen size breakpoints in lib/core/utils/responsive_utils.dart
-- [ ] M058 [P] Create responsive builder widget for adaptive layouts in lib/presentation/widgets/common/responsive_builder.dart
-- [ ] M059 [P] Update all screens with responsive layouts for tablets in lib/presentation/screens/
+- [ ] M057 [P] Create responsive utils with Material Design breakpoints (≥600dp for tablet, ≥840dp for large tablet) in lib/core/utils/responsive_utils.dart
+- [ ] M058 [P] Create responsive builder widget for adaptive layouts using MediaQuery.of(context).size.width in lib/presentation/widgets/common/responsive_builder.dart
+- [ ] M059 [P] Update all screens with responsive layouts for tablets (phone <600dp, tablet ≥600dp) in lib/presentation/screens/
 - [ ] M060 [P] Set up localization with ARB files in lib/l10n/
 - [ ] M061 Create Vietnamese translations in lib/l10n/app_vi.arb
 - [ ] M062 Create English translations in lib/l10n/app_en.arb
@@ -374,7 +375,9 @@ Developer B: M043-M045 (presentation)
 
 ## Key Architectural Decisions
 
-**From mobile.md clarifications**:
+**From mobile.md clarifications (updated Session 2025-12-10)**:
+
+### Original Clarifications (Session 2025-12-09):
 
 1. **Firebase SDKs for OAuth**: Use google_sign_in and sign_in_with_apple packages to acquire tokens on mobile, send to backend /auth/social for JWT issuance (no Firebase Admin SDK on backend)
 
@@ -385,6 +388,18 @@ Developer B: M043-M045 (presentation)
 4. **Responsive Tablet Layouts**: Use MediaQuery with breakpoints (600dp for small tablets, 840dp for large tablets), adaptive layouts per screen (single column → two-column grid, portrait → landscape)
 
 5. **Immediate Pronunciation Feedback**: Show pronunciation score immediately after each sentence with word-by-word breakdown, require user acknowledgment before advancing to next sentence (best learning feedback loop)
+
+### New Clarifications (Session 2025-12-10):
+
+6. **BLoC Event Naming Convention**: Use imperative (command) style - LoginRequested, GameStarted, RecordingStarted (NOT past tense: UserLoggedIn, GameWasStarted). Events represent user intent/commands.
+
+7. **Offline Sync Retry Strategy**: When sync fails after reconnection, use exponential backoff - retry at 1s, 2s, 4s, 8s intervals then fail. Balances persistence with UX, failed sessions logged but don't block gameplay.
+
+8. **Tablet Breakpoint Standard**: Use ≥600dp for tablet layout switch (Material Design standard). Implement with `MediaQuery.of(context).size.width >= 600`.
+
+9. **Audio Buffer Limit**: Enforce 10MB maximum buffer size. Sufficient for ~2 minutes at 64kbps, provides 10x safety margin for per-sentence recording (typical sentences <12 seconds). Auto-stop if exceeded.
+
+10. **Pronunciation API Endpoint**: POST /speech/score with multipart upload (audio file + reference_text + language), returns SpeechScoreResponse with pronunciationScore, wordScores array, and detailed metrics.
 
 ---
 
