@@ -2,8 +2,16 @@
 
 **Project**: English Learning App - Backend API & Admin System  
 **Date**: December 10, 2025  
-**Technology Stack**: Python 3.12, FastAPI, SQLAlchemy, PostgreSQL  
+**Technology Stack**: Python 3.12, FastAPI, SQLAlchemy, PostgreSQL, MinIO, Azure Speech SDK  
 **Based on**: [spec/backend.md](../spec/backend.md)
+
+## Key Architectural Decisions (from backend.md Clarifications)
+
+1. **Authentication**: JWT-based custom implementation (HS256) - No Firebase Auth dependency
+2. **Audio Storage**: MinIO (self-hosted S3-compatible) - User recordings handled as temporary memory buffers, deleted immediately after processing
+3. **Speech-to-Text**: Azure Cognitive Services Speech SDK only (built-in pronunciation assessment)
+4. **Admin Panel**: SQLAdmin auto-generated admin (FastAPI plugin with automatic UI)
+5. **OAuth Flow**: Backend validates OAuth tokens directly, issues JWT tokens
 
 ---
 
@@ -57,15 +65,12 @@ apps/backend/
 │   │   ├── speech_service.py   # Speech filtering and random selection
 │   │   ├── game_service.py     # Game session management
 │   │   ├── import_service.py   # CSV/audio import logic
-│   │   ├── storage_service.py  # S3/object storage operations
+│   │   ├── storage_service.py  # MinIO object storage operations
 │   │   └── speech_provider/    # Speech-to-text abstraction
 │   │       ├── __init__.py
 │   │       ├── base.py         # Abstract provider interface
-│   │       ├── azure_provider.py
-│   │       ├── google_provider.py
-│   │       ├── aws_provider.py
-│   │       ├── whisper_provider.py
-│   │       └── factory.py      # Provider factory
+│   │       ├── azure_provider.py  # Azure Speech SDK (MVP)
+│   │       └── factory.py      # Provider factory (returns Azure for MVP)
 │   │
 │   ├── utils/                  # Utility functions
 │   │   ├── __init__.py
@@ -122,8 +127,50 @@ apps/backend/
 **Files to Create**:
 - All directories and `__init__.py` files
 - `requirements.txt` with initial dependencies
-- `.env.example` with all required environment variables
+- `.env.example` with all required environment variables (see complete list below)
 - `README.md` with project overview
+
+**.env.example Template**:
+```bash
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/english_practice
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
+# MinIO / S3 Storage
+S3_ENDPOINT_URL=http://localhost:9000
+S3_ACCESS_KEY=minioadmin
+S3_SECRET_KEY=minioadmin
+S3_BUCKET_NAME=english-practice-audio
+S3_USE_SSL=false
+
+# Azure Speech Services
+AZURE_SPEECH_KEY=your_azure_speech_key
+AZURE_SPEECH_REGION=eastus
+
+# JWT Authentication
+JWT_SECRET_KEY=your-secret-key-at-least-32-chars
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_MINUTES=10080  # 7 days
+
+# OAuth Providers (for token validation)
+GOOGLE_CLIENT_ID=your_google_client_id
+APPLE_CLIENT_ID=your_apple_client_id
+FACEBOOK_APP_ID=your_facebook_app_id
+FACEBOOK_APP_SECRET=your_facebook_app_secret
+
+# SQLAdmin Panel
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=bcrypt_hashed_password_here
+
+# Application
+ENVIRONMENT=development
+DEBUG=true
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8081
+```
+
+**Note**: All OAuth validation is backend-direct (no Firebase Admin SDK). Mobile uses Firebase SDKs to acquire OAuth tokens, backend validates with provider APIs.
 
 ---
 
@@ -190,23 +237,54 @@ alembic upgrade head
 ---
 
 #### Task 1.5: Set Up Development Environment
-**Description**: Create Docker Compose configuration for local development with PostgreSQL, Redis, and S3-compatible storage (MinIO).
+**Description**: Create Docker Compose configuration for local development with PostgreSQL, Redis, and MinIO (S3-compatible storage).
 
 **Acceptance Criteria**:
 - `docker-compose.yml` with PostgreSQL, Redis, MinIO services
 - Services start successfully with `docker-compose up`
 - Database accessible on localhost:5432
 - Redis accessible on localhost:6379
-- MinIO accessible on localhost:9000
+- **MinIO accessible on localhost:9000** (console at localhost:9001)
+- **MinIO bucket auto-created**: `english-practice-audio`
+- Environment variables configured for MinIO integration
 
 **Files to Create**:
 - `docker-compose.yml`
 - `.dockerignore`
 
 **Services**:
-- PostgreSQL 15
-- Redis 7
-- MinIO (S3-compatible)
+- **PostgreSQL 15**: Database for all structured data
+- **Redis 7**: Cache and session store
+- **MinIO (latest)**: S3-compatible storage for reference audio files
+  - Default credentials: `minioadmin` / `minioadmin` (development only)
+  - Bucket: `english-practice-audio`
+  - Public read access for reference audio URLs
+
+**MinIO Configuration** (docker-compose.yml):
+```yaml
+minio:
+  image: minio/minio:latest
+  ports:
+    - "9000:9000"  # API
+    - "9001:9001"  # Console
+  environment:
+    MINIO_ROOT_USER: minioadmin
+    MINIO_ROOT_PASSWORD: minioadmin
+  command: server /data --console-address ":9001"
+  volumes:
+    - minio_data:/data
+```
+
+**Environment Variables** (for backend app):
+```
+S3_ENDPOINT_URL=http://localhost:9000
+S3_ACCESS_KEY=minioadmin
+S3_SECRET_KEY=minioadmin
+S3_BUCKET_NAME=english-practice-audio
+S3_USE_SSL=false
+```
+
+**Note**: For production deployment, see backend.md deployment guide for MinIO security hardening.
 
 ---
 
@@ -381,19 +459,40 @@ python-multipart>=0.0.6
 ---
 
 #### Task 3.3: Implement Auth Service
-**Description**: Create authentication business logic for registration, login, social auth, and token refresh.
+**Description**: Create JWT-based authentication business logic for registration, login, social OAuth validation, and token refresh. Backend directly validates OAuth tokens from providers (Google, Apple, Facebook) and issues JWT tokens.
 
 **Acceptance Criteria**:
-- User registration with email/password
+- User registration with email/password (bcrypt hashing)
 - User login with credential validation
-- Social auth (OAuth token verification placeholder)
-- Refresh token logic
-- User lookup by email
+- **Social OAuth flow**:
+  - Receive OAuth token from mobile app (acquired via Firebase SDKs)
+  - Validate token with provider's API (Google: `https://oauth2.googleapis.com/tokeninfo`, Apple: verify JWT signature, Facebook: Graph API)
+  - Extract user email and provider ID from verified token
+  - Create or retrieve user account
+  - Issue JWT access + refresh tokens
+- Refresh token logic (validate refresh token, issue new access token)
+- User lookup by email and (auth_provider, auth_provider_id)
 - Create user with hashed password
 - Validate credentials
 
 **Files to Create**:
 - `app/services/auth_service.py`
+
+**OAuth Token Validation**:
+```python
+# Google: Verify ID token
+import requests
+response = requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={token}")
+# Returns: email, sub (user ID), email_verified
+
+# Apple: Verify JWT signature with Apple's public keys
+# Facebook: Verify with Graph API
+```
+
+**Notes**:
+- No Firebase Admin SDK dependency on backend
+- Mobile app uses Firebase Authentication SDKs (google_sign_in, sign_in_with_apple) to acquire OAuth tokens
+- Backend validates tokens directly with provider APIs and issues JWT tokens
 
 ---
 
@@ -544,25 +643,38 @@ python-multipart>=0.0.6
 
 ---
 
-#### Task 6.2: Implement Storage Service
-**Description**: Create S3/object storage service for audio file operations and signed URL generation.
+#### Task 6.2: Implement MinIO Storage Service
+**Description**: Create MinIO (S3-compatible) storage service for audio file operations and signed URL generation. MinIO SDK provides native Python client optimized for S3-compatible storage.
 
 **Acceptance Criteria**:
-- S3 client initialization (boto3)
-- Upload file to S3 with unique key
-- Generate signed URL with expiration (default 1 hour)
-- Delete file from S3
+- MinIO client initialization with endpoint, access key, secret key
+- Upload file to MinIO bucket with unique key
+- Upload bytes directly (for in-memory audio data)
+- Generate pre-signed URL with expiration (default 1 hour)
+- Delete file from MinIO
 - List files in bucket/prefix
 - Handle duplicate filenames with suffix (_1, _2)
-- Support MinIO for local development
+- Bucket auto-creation if not exists
+- Support for both local MinIO (development) and production deployment
 
 **Files to Create**:
 - `app/services/storage_service.py`
 
 **Dependencies**:
 ```
-boto3>=1.34.0
+minio>=7.2.0
 ```
+
+**Configuration** (from backend.md):
+- Endpoint: `S3_ENDPOINT_URL` (e.g., `localhost:9000` for dev, `storage.englishapp.com` for prod)
+- Bucket: `S3_BUCKET_NAME` (e.g., `englishapp-audio`)
+- Credentials: `S3_ACCESS_KEY`, `S3_SECRET_KEY`
+- SSL: `S3_USE_SSL` (false for dev, true for prod)
+
+**Notes**: 
+- User audio recordings for pronunciation scoring should NEVER be persisted to storage
+- Only reference audio files (from admin uploads) are stored in MinIO
+- Temporary user audio is kept in memory buffer only, passed directly to Azure Speech API
 
 ---
 
@@ -616,33 +728,37 @@ boto3>=1.34.0
 ---
 
 ### Milestone 7: Speech-to-Text Integration (Week 4-5)
-**Goal**: Implement speech provider abstraction layer with Azure as default
+**Goal**: Implement Azure Speech Services for pronunciation scoring (MVP decision: Azure only)
 
 #### Task 7.1: Implement Speech Provider Base Interface
-**Description**: Create abstract base class for speech-to-text providers with result data classes.
+**Description**: Create abstract base class for speech-to-text providers with result data classes. Architecture supports future providers, but MVP uses Azure only.
 
 **Acceptance Criteria**:
 - Abstract SpeechProvider class with `transcribe_and_score` method
-- ScoringResult dataclass (recognized_text, pronunciation_score, accuracy_score, fluency_score, word_scores, confidence, provider_name)
-- WordScore dataclass
+- ScoringResult dataclass (recognized_text, pronunciation_score, accuracy_score, fluency_score, completeness_score, word_scores, confidence, provider_name, raw_response)
+- WordScore dataclass (word, score, error_type)
 - Custom exception classes (SpeechProviderError, TimeoutError, APIError, AudioQualityError)
 
 **Files to Create**:
 - `app/services/speech_provider/base.py`
 
+**Note**: Abstract interface designed for extensibility, but MVP implementation focuses on Azure only.
+
 ---
 
-#### Task 7.2: Implement Azure Speech Provider
-**Description**: Implement Azure Speech Services provider with pronunciation assessment.
+#### Task 7.2: Implement Azure Speech Provider (MVP)
+**Description**: Implement Azure Cognitive Services Speech SDK with built-in pronunciation assessment. This is the **only** speech provider for MVP.
 
 **Acceptance Criteria**:
-- Azure Speech SDK integration
-- Pronunciation assessment configuration
-- Audio format handling (MP3, WAV, M4A)
+- Azure Speech SDK integration with pronunciation assessment
+- PronunciationAssessmentConfig with reference text
+- Audio format handling (MP3, WAV, M4A) - accepts bytes in memory
+- **Audio lifecycle**: Accept audio bytes from memory buffer, NEVER write to filesystem
 - Extract all scores (pronunciation, accuracy, fluency, completeness)
-- Word-level scores
+- Word-level scores with error types
 - Error handling with custom exceptions
 - 10-second timeout
+- Async/await for non-blocking calls
 
 **Files to Create**:
 - `app/services/speech_provider/azure_provider.py`
@@ -652,60 +768,94 @@ boto3>=1.34.0
 azure-cognitiveservices-speech>=1.34.0
 ```
 
+**Configuration** (from backend.md):
+```python
+SPEECH_PROVIDER=azure  # MVP: Azure only
+AZURE_SPEECH_KEY=<your_key>
+AZURE_SPEECH_REGION=eastus  # or your region
+SPEECH_API_TIMEOUT=10  # seconds
+```
+
+**Implementation Notes**:
+- User audio recordings are ephemeral (exist only in request memory)
+- Audio bytes passed directly to Azure SDK
+- No temporary file creation
+- Delete audio buffer immediately after Azure API returns
+- Built-in pronunciation assessment eliminates need for custom scoring algorithms
+
 ---
 
-#### Task 7.3: Implement Provider Factory
-**Description**: Create factory pattern for speech provider instantiation based on configuration.
+#### Task 7.3: Implement Provider Factory (Azure MVP)
+**Description**: Create factory pattern for speech provider instantiation. MVP always returns Azure provider, but architecture allows future expansion.
 
 **Acceptance Criteria**:
-- Factory creates provider based on SPEECH_PROVIDER env var
-- Support: azure, google, aws, whisper
-- Raise error for unknown provider
+- Factory creates Azure provider (hardcoded for MVP)
+- Validate Azure credentials on startup
 - Lazy initialization (create on first use)
-- Settings validation on startup
+- Settings validation (AZURE_SPEECH_KEY, AZURE_SPEECH_REGION required)
+- Raise error if credentials missing
 
 **Files to Create**:
 - `app/services/speech_provider/factory.py`
 
 **Files to Update**:
-- `app/config.py`: Add speech provider settings
+- `app/config.py`: Add Azure speech settings
+
+**MVP Implementation**:
+```python
+def get_speech_provider() -> SpeechProvider:
+    """Returns Azure provider for MVP. Future: support multiple providers."""
+    return AzureSpeechProvider(
+        key=settings.AZURE_SPEECH_KEY,
+        region=settings.AZURE_SPEECH_REGION
+    )
+```
 
 ---
 
 #### Task 7.4: Implement Speech Scoring Endpoint
-**Description**: Create endpoint for pronunciation scoring with audio upload.
+**Description**: Create endpoint for pronunciation scoring with audio upload. Accepts audio bytes, scores immediately, returns result without persisting audio.
 
 **Acceptance Criteria**:
 - POST /api/v1/speech/score (200 OK)
 - Accept multipart form data (audio file, reference_text, language)
 - Validate audio format (MP3, WAV, M4A)
 - File size limit (10MB)
+- **Audio handling**: Read audio into memory buffer, pass to Azure, discard immediately
 - Call speech provider service
-- Return scoring result
+- Return scoring result with all Azure pronunciation metrics
 - Error handling (400, 422, 503)
+- No audio persistence (security requirement)
 
 **Files to Create**:
 - `app/api/v1/speech.py`
 
+**Request Flow**:
+1. Mobile uploads audio bytes (multipart/form-data)
+2. FastAPI reads into memory buffer
+3. Validate format and size
+4. Pass bytes to Azure Speech Provider
+5. Azure processes and returns scores
+6. Return scores to mobile
+7. Memory buffer garbage collected (no file writes)
+
 ---
 
-#### Task 7.5: Implement Additional Providers (Optional)
-**Description**: Implement Google, AWS, and Whisper speech providers with fallback scoring algorithm.
+#### Task 7.5: Alternative Providers (DEFERRED - Post-MVP)
+**Description**: Future consideration for Google, AWS, Whisper providers. NOT included in MVP.
 
-**Acceptance Criteria**:
-- Google Speech-to-Text integration
-- AWS Transcribe integration
-- Whisper (local or API) integration
-- Custom pronunciation scoring using Levenshtein distance
-- Consistent ScoringResult format
-- Provider-specific error handling
+**Rationale**: 
+- Azure provides built-in pronunciation assessment
+- Fastest MVP implementation
+- Other providers require custom scoring algorithms
+- Can be added later if cost or accuracy requirements change
 
-**Files to Create**:
+**Future Files** (not created in MVP):
 - `app/services/speech_provider/google_provider.py`
 - `app/services/speech_provider/aws_provider.py`
 - `app/services/speech_provider/whisper_provider.py`
 
-**Dependencies**:
+---
 ```
 google-cloud-speech>=2.24.0
 boto3>=1.34.0  # for AWS Transcribe
@@ -804,30 +954,59 @@ pandas>=2.1.0  # for CSV parsing
 
 ---
 
-#### Task 8.5: Set Up SQLAdmin Panel
-**Description**: Integrate SQLAdmin for web-based admin interface.
+#### Task 8.5: Set Up SQLAdmin Panel (MVP Admin Solution)
+**Description**: Integrate SQLAdmin auto-generated admin panel for rapid content management. SQLAdmin provides automatic CRUD UI from SQLAlchemy models with zero frontend code.
 
 **Acceptance Criteria**:
-- SQLAdmin installed and configured
-- Admin authentication backend (username/password)
-- ModelView for Speech with filters (level, type)
-- ModelView for Tag
-- ModelView for User (read-only)
-- ModelView for GameSession (read-only)
-- Access at /admin URL
-- Admin credentials from environment variables
+- SQLAdmin installed and configured with FastAPI app
+- Admin authentication backend (bcrypt-hashed password from environment)
+- **ModelView for Speech** with:
+  - Columns: id, text, level, type, created_at, updated_at
+  - Searchable: text field
+  - Filters: level, type
+  - Sortable: level, created_at
+  - Full CRUD enabled (create, edit, delete)
+- **ModelView for Tag** with:
+  - Columns: id, name, category, speech_count (computed), created_at
+  - Searchable: name
+  - Filters: category
+  - Full CRUD enabled
+- **ModelView for User** (read-only):
+  - Columns: id, email, name, auth_provider, created_at
+  - Searchable: email, name
+  - Filters: auth_provider
+  - Can edit, can delete (no create - users created via API)
+- **ModelView for GameSession** (read-only):
+  - Columns: id, user_id, mode, level, completed_at
+  - Filters: mode, level
+  - Sortable: completed_at
+  - Can delete only (no create/edit - sessions created via API)
+- Access at `/admin` URL
+- Admin credentials from environment (`ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`)
+- Session-based authentication (separate from user JWT auth)
 
 **Files to Create**:
-- `app/admin/auth.py`: Admin authentication backend
-- `app/admin/views.py`: Admin model views
+- `app/admin/auth.py`: SQLAdmin authentication backend (bcrypt verification)
+- `app/admin/views.py`: Admin model views (SpeechAdmin, TagAdmin, UserAdmin, GameSessionAdmin)
 
 **Files to Update**:
-- `app/main.py`: Mount admin panel
+- `app/main.py`: Mount admin panel with `admin.mount_to(app)`
+- `app/config.py`: Add `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`
 
 **Dependencies**:
 ```
 sqladmin>=0.16.0
+passlib[bcrypt]>=1.7.4  # for admin password hashing
 ```
+
+**Benefits** (from backend.md):
+- Quick setup (< 1 day implementation)
+- Automatic CRUD UI generation from SQLAlchemy models
+- Built-in authentication support
+- Zero frontend code to maintain
+- Works directly with existing database models
+
+**Future Enhancement**: Custom React admin panel for advanced UX (not included in MVP)
 
 ---
 
@@ -1062,11 +1241,11 @@ faker>=22.0.0
 ---
 
 #### Task 10.6: Write Tests - Speech Provider Abstraction
-**Description**: Tests for speech provider interface and implementations.
+**Description**: Tests for speech provider interface and Azure implementation (MVP only).
 
 **Acceptance Criteria**:
-- Test provider factory
-- Mock tests for each provider (Azure, Google, AWS, Whisper)
+- Test provider factory (returns Azure provider)
+- Mock tests for Azure provider
 - Test error handling and timeouts
 - Test fallback scoring algorithm
 - Integration test with real Azure provider (if credentials available)
@@ -1074,7 +1253,8 @@ faker>=22.0.0
 **Files to Create**:
 - `tests/unit/services/speech_provider/test_factory.py`
 - `tests/unit/services/speech_provider/test_azure_provider.py`
-- `tests/unit/services/speech_provider/test_providers.py`
+
+**Note**: Google/AWS/Whisper provider tests deferred post-MVP (no implementations in MVP).
 
 ---
 
@@ -1317,7 +1497,7 @@ safety>=3.0.0
 - ✅ 50+ Python modules (models, schemas, services, API routes)
 - ✅ 5 database models with migrations
 - ✅ 30+ REST API endpoints
-- ✅ Speech provider abstraction with 4 implementations
+- ✅ Speech provider abstraction with Azure implementation (MVP)
 - ✅ CSV/audio import workflow
 - ✅ Admin panel with SQLAdmin
 - ✅ 100+ unit tests
@@ -1399,13 +1579,11 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.6
 
-# Storage
-boto3>=1.34.0
+# Storage (MinIO for MVP - S3-compatible)
+minio>=7.2.0
 
-# Speech Providers
+# Speech Providers (Azure only for MVP)
 azure-cognitiveservices-speech>=1.34.0
-google-cloud-speech>=2.24.0
-openai>=1.0.0
 python-Levenshtein>=0.25.0
 
 # Caching & Rate Limiting
@@ -1437,6 +1615,12 @@ locust>=2.20.0
 bandit>=1.7.0
 safety>=3.0.0
 ```
+
+**Key Dependency Notes (from backend.md clarifications)**:
+- **Storage**: Using `minio` SDK (not `boto3`) for MinIO S3-compatible storage
+- **Speech**: Only `azure-cognitiveservices-speech` for MVP (Google Cloud Speech and OpenAI deferred post-MVP)
+- **Authentication**: No `firebase-admin` SDK - backend validates OAuth tokens directly with provider APIs
+- **Admin Panel**: `sqladmin` with `passlib[bcrypt]` for quick MVP admin solution
 
 ---
 
