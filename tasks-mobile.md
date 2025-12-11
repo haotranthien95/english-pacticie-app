@@ -285,7 +285,7 @@ Foundation ──────┐
 - [X] M063 [P] Write unit tests for BLoCs (auth, game, history, profile) in test/unit/
 - [X] M064 [P] Write unit tests for repositories and data sources in test/unit/
 - [X] M065 [P] Write widget tests for screens and widgets in test/widget/
-- [ ] M066 [P] Write integration tests for complete user flows in integration_test/
+- [X] M066 [P] Write integration tests for complete user flows in integration_test/
 - [ ] M067 Profile app performance and fix bottlenecks
 - [ ] M068 Optimize image and asset sizes
 - [ ] M069 Test on physical devices (Android and iOS)
