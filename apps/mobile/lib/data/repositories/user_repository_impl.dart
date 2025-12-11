@@ -27,7 +27,7 @@ class UserRepositoryImpl implements UserRepository {
       return Left(NetworkFailure(message: e.message));
     } on UnauthorizedException catch (e) {
       // Clear token on unauthorized
-      await localDataSource.clearToken();
+      await localDataSource.deleteToken();
       return Left(UnauthorizedFailure(message: e.message));
     } catch (e) {
       return Left(ServerFailure(message: 'Failed to load profile: $e'));
@@ -53,7 +53,7 @@ class UserRepositoryImpl implements UserRepository {
       return Left(NetworkFailure(message: e.message));
     } on UnauthorizedException catch (e) {
       // Clear token on unauthorized
-      await localDataSource.clearToken();
+      await localDataSource.deleteToken();
       return Left(UnauthorizedFailure(message: e.message));
     } catch (e) {
       return Left(ServerFailure(message: 'Failed to update profile: $e'));
@@ -66,7 +66,7 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.deleteAccount();
 
       // Clear local token after successful deletion
-      await localDataSource.clearToken();
+      await localDataSource.deleteToken();
 
       return const Right(null);
     } on ServerException catch (e) {
@@ -75,7 +75,7 @@ class UserRepositoryImpl implements UserRepository {
       return Left(NetworkFailure(message: e.message));
     } on UnauthorizedException catch (e) {
       // Clear token anyway
-      await localDataSource.clearToken();
+      await localDataSource.deleteToken();
       return Left(UnauthorizedFailure(message: e.message));
     } catch (e) {
       return Left(ServerFailure(message: 'Failed to delete account: $e'));

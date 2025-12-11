@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/entities/speech.dart';
 import '../../domain/entities/game_session.dart';
+import '../../domain/entities/user.dart';
 import '../../presentation/blocs/auth/auth_bloc.dart';
 import '../../presentation/blocs/auth/auth_state.dart';
 import '../../presentation/screens/auth/login_screen.dart';
@@ -10,8 +10,6 @@ import '../../presentation/screens/auth/register_screen.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
 import '../../presentation/screens/game/game_config_screen.dart';
 import '../../presentation/screens/game/game_summary_screen.dart';
-import '../../presentation/screens/game/listen_only_game_screen.dart';
-import '../../presentation/screens/game/listen_repeat_game_screen.dart';
 import '../../presentation/screens/history/history_screen.dart';
 import '../../presentation/screens/history/session_detail_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
@@ -134,7 +132,16 @@ GoRouter createAppRouter(BuildContext context) {
                 routes: [
                   GoRoute(
                     path: 'edit',
-                    builder: (context, state) => const EditProfileScreen(),
+                    builder: (context, state) {
+                      // Note: ProfileScreen uses Navigator.push directly with user parameter
+                      // This route is defined for completeness but not actively used
+                      final user = state.extra;
+                      if (user == null) {
+                        // Fallback: redirect to profile screen
+                        return const ProfileScreen();
+                      }
+                      return EditProfileScreen(user: user as User);
+                    },
                   ),
                 ],
               ),

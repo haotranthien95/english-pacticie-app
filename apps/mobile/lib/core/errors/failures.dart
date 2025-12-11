@@ -42,6 +42,14 @@ class AuthFailure extends Failure {
   });
 }
 
+/// Unauthorized (401) failures - token expired or invalid
+class UnauthorizedFailure extends Failure {
+  const UnauthorizedFailure({
+    required super.message,
+    super.code = '401',
+  });
+}
+
 /// Data parsing/serialization failures
 class DataFailure extends Failure {
   const DataFailure({
