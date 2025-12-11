@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:english_learning_app/main.dart' as app;
 
 /// Integration test for history and profile flows
-/// 
+///
 /// Tests the complete user journey for:
 /// - Viewing game history with sessions
 /// - Filtering sessions by mode, level, date
@@ -15,7 +14,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('History Flow E2E Tests', () {
-    testWidgets('should navigate to history screen from bottom nav', (tester) async {
+    testWidgets('should navigate to history screen from bottom nav',
+        (tester) async {
       // Note: Assumes authenticated user
       app.main();
       await tester.pumpAndSettle();
@@ -95,7 +95,8 @@ void main() {
       // 3. Verify updated list shown
     });
 
-    testWidgets('should navigate to session detail when tapped', (tester) async {
+    testWidgets('should navigate to session detail when tapped',
+        (tester) async {
       // Test navigation:
       // 1. Tap session card
       // 2. Navigate to detail screen
@@ -121,7 +122,9 @@ void main() {
       // - Pronunciation score (if listen-repeat mode)
     });
 
-    testWidgets('should display pronunciation scores for listen-repeat sessions', (tester) async {
+    testWidgets(
+        'should display pronunciation scores for listen-repeat sessions',
+        (tester) async {
       // Test pronunciation details:
       // - Overall score
       // - Word-by-word scores
@@ -262,7 +265,8 @@ void main() {
       // 2. Verify UI in English
     });
 
-    testWidgets('should persist theme and language across sessions', (tester) async {
+    testWidgets('should persist theme and language across sessions',
+        (tester) async {
       // Test persistence:
       // 1. Change theme and language
       // 2. Restart app
@@ -311,7 +315,8 @@ void main() {
   });
 
   group('Complete User Journey Tests', () {
-    testWidgets('should complete full app flow from login to game to history', (tester) async {
+    testWidgets('should complete full app flow from login to game to history',
+        (tester) async {
       // Complete E2E test:
       // 1. Launch app
       // 2. Login

@@ -108,7 +108,8 @@ void main() {
       verify(mockNavigationShell.goBranch(2, initialLocation: false)).called(1);
     });
 
-    testWidgets('should refresh current branch when tapping selected tab', (tester) async {
+    testWidgets('should refresh current branch when tapping selected tab',
+        (tester) async {
       // Arrange
       when(mockNavigationShell.currentIndex).thenReturn(0);
       await tester.pumpWidget(createHomeScreen());
@@ -131,11 +132,13 @@ void main() {
       await tester.pumpWidget(createHomeScreen());
 
       // Assert - Home should show selected icon
-      expect(find.byIcon(Icons.home), findsNothing); // Selected icons not visible in initial render
+      expect(find.byIcon(Icons.home),
+          findsNothing); // Selected icons not visible in initial render
       expect(find.byIcon(Icons.home_outlined), findsOneWidget);
     });
 
-    testWidgets('should update selected index when navigation changes', (tester) async {
+    testWidgets('should update selected index when navigation changes',
+        (tester) async {
       // Arrange
       when(mockNavigationShell.currentIndex).thenReturn(1);
 
@@ -178,7 +181,8 @@ void main() {
       expect(find.text('Current Tab Content'), findsOneWidget);
     });
 
-    testWidgets('should wrap navigation shell in Scaffold body', (tester) async {
+    testWidgets('should wrap navigation shell in Scaffold body',
+        (tester) async {
       // Arrange & Act
       await tester.pumpWidget(createHomeScreen());
 

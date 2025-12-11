@@ -49,35 +49,38 @@ void main() {
       expect(find.textContaining('Don\'t have an account?'), findsOneWidget);
     });
 
-    testWidgets('should display email field with correct properties', (tester) async {
+    testWidgets('should display email field with correct properties',
+        (tester) async {
       // Arrange & Act
       await tester.pumpWidget(createLoginScreen());
 
       // Assert
       final emailField = find.widgetWithText(TextFormField, 'Email');
       expect(emailField, findsOneWidget);
-      
+
       final textField = tester.widget<TextFormField>(emailField);
       expect(textField.keyboardType, TextInputType.emailAddress);
       expect(textField.decoration?.prefixIcon, isA<Icon>());
     });
 
-    testWidgets('should display password field with visibility toggle', (tester) async {
+    testWidgets('should display password field with visibility toggle',
+        (tester) async {
       // Arrange & Act
       await tester.pumpWidget(createLoginScreen());
 
       // Assert
       final passwordField = find.widgetWithText(TextFormField, 'Password');
       expect(passwordField, findsOneWidget);
-      
+
       final textField = tester.widget<TextFormField>(passwordField);
       expect(textField.obscureText, true);
-      
+
       // Find visibility toggle button
       expect(find.byIcon(Icons.visibility), findsOneWidget);
     });
 
-    testWidgets('should toggle password visibility when icon tapped', (tester) async {
+    testWidgets('should toggle password visibility when icon tapped',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -87,7 +90,7 @@ void main() {
 
       // Assert - Password should be visible
       expect(find.byIcon(Icons.visibility_off), findsOneWidget);
-      
+
       // Act - Tap again
       await tester.tap(find.byIcon(Icons.visibility_off));
       await tester.pump();
@@ -159,10 +162,12 @@ void main() {
       await tester.pump();
 
       // Assert
-      expect(find.text('Password must be at least 6 characters'), findsOneWidget);
+      expect(
+          find.text('Password must be at least 6 characters'), findsOneWidget);
     });
 
-    testWidgets('should not show validation errors when form is valid', (tester) async {
+    testWidgets('should not show validation errors when form is valid',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -187,7 +192,9 @@ void main() {
   });
 
   group('LoginScreen - User Interactions', () {
-    testWidgets('should dispatch LoginRequested event when login button tapped with valid data', (tester) async {
+    testWidgets(
+        'should dispatch LoginRequested event when login button tapped with valid data',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -210,7 +217,9 @@ void main() {
       ))).called(1);
     });
 
-    testWidgets('should dispatch SocialLoginRequested with Google when Google button tapped', (tester) async {
+    testWidgets(
+        'should dispatch SocialLoginRequested with Google when Google button tapped',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -224,7 +233,9 @@ void main() {
       )).called(1);
     });
 
-    testWidgets('should dispatch SocialLoginRequested with Apple when Apple button tapped', (tester) async {
+    testWidgets(
+        'should dispatch SocialLoginRequested with Apple when Apple button tapped',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -238,7 +249,9 @@ void main() {
       )).called(1);
     });
 
-    testWidgets('should dispatch SocialLoginRequested with Facebook when Facebook button tapped', (tester) async {
+    testWidgets(
+        'should dispatch SocialLoginRequested with Facebook when Facebook button tapped',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -252,7 +265,8 @@ void main() {
       )).called(1);
     });
 
-    testWidgets('should navigate to register screen when sign up link tapped', (tester) async {
+    testWidgets('should navigate to register screen when sign up link tapped',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -278,12 +292,13 @@ void main() {
       final passwordField = tester.widget<TextFormField>(
         find.widgetWithText(TextFormField, 'Password'),
       );
-      
+
       expect(emailField.enabled, false);
       expect(passwordField.enabled, false);
     });
 
-    testWidgets('should show loading indicator when state is AuthLoading', (tester) async {
+    testWidgets('should show loading indicator when state is AuthLoading',
+        (tester) async {
       // Arrange
       when(mockAuthBloc.state).thenReturn(const AuthLoading());
       await tester.pumpWidget(createLoginScreen());
@@ -292,7 +307,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should show success snackbar when authenticated', (tester) async {
+    testWidgets('should show success snackbar when authenticated',
+        (tester) async {
       // Arrange
       final user = User(
         id: 'user-1',
@@ -301,7 +317,7 @@ void main() {
         displayName: 'Test User',
         createdAt: DateTime.now(),
       );
-      
+
       await tester.pumpWidget(createLoginScreen());
 
       // Act - Simulate state change to authenticated
@@ -317,7 +333,8 @@ void main() {
       verify(mockAuthBloc.add(any)).called(1);
     });
 
-    testWidgets('should show error snackbar when authentication fails', (tester) async {
+    testWidgets('should show error snackbar when authentication fails',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 
@@ -335,7 +352,8 @@ void main() {
   });
 
   group('LoginScreen - Edge Cases', () {
-    testWidgets('should trim email whitespace before submitting', (tester) async {
+    testWidgets('should trim email whitespace before submitting',
+        (tester) async {
       // Arrange
       await tester.pumpWidget(createLoginScreen());
 

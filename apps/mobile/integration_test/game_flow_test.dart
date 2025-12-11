@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:english_learning_app/main.dart' as app;
 
 /// Integration test for game configuration and play flow
-/// 
+///
 /// Tests the complete game user journey including:
 /// - Navigating to game config from home
 /// - Selecting game difficulty, type, and tags
@@ -18,7 +17,7 @@ void main() {
     testWidgets('should display game config screen elements', (tester) async {
       // Note: This test assumes user is already authenticated
       // In a full test, you would login first
-      
+
       app.main();
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 2));
@@ -26,7 +25,7 @@ void main() {
 
       // Wait for authentication check and navigation
       // This may navigate to login if not authenticated
-      
+
       // If on game config screen, verify elements
       // The test will need to handle auth state appropriately
     });
@@ -52,7 +51,8 @@ void main() {
       // Test count selector (10, 20, 30 speeches)
     });
 
-    testWidgets('should start listen-only game when button tapped', (tester) async {
+    testWidgets('should start listen-only game when button tapped',
+        (tester) async {
       // Test starting a listen-only game
       // Requires:
       // 1. Navigate to game config
@@ -61,7 +61,8 @@ void main() {
       // 4. Verify navigation to game screen
     });
 
-    testWidgets('should start listen-repeat game when button tapped', (tester) async {
+    testWidgets('should start listen-repeat game when button tapped',
+        (tester) async {
       // Test starting a listen-and-repeat game
     });
   });
@@ -157,7 +158,8 @@ void main() {
       // 4. Show word-by-word breakdown
     });
 
-    testWidgets('should require acknowledgment before next speech', (tester) async {
+    testWidgets('should require acknowledgment before next speech',
+        (tester) async {
       // Test feedback acknowledgment:
       // 1. View pronunciation score
       // 2. Tap "Continue" or "Next"

@@ -11,7 +11,6 @@ import '../datasources/local/game_local_datasource.dart';
 import '../datasources/remote/game_remote_datasource.dart';
 import '../models/game_session_model.dart';
 import '../models/speech_model.dart';
-import '../models/tag_model.dart';
 
 /// Implementation of GameRepository with offline-first strategy
 class GameRepositoryImpl implements GameRepository {

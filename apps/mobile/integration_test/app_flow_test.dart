@@ -4,7 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:english_learning_app/main.dart' as app;
 
 /// Comprehensive integration test covering complete app flow
-/// 
+///
 /// This test simulates a realistic user journey through the entire app:
 /// 1. App launch and splash screen
 /// 2. Authentication (registration/login)
@@ -18,7 +18,8 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Complete App Flow E2E Test', () {
-    testWidgets('should complete full user journey from start to finish', (tester) async {
+    testWidgets('should complete full user journey from start to finish',
+        (tester) async {
       // ========== 1. APP LAUNCH ==========
       app.main();
       await tester.pumpAndSettle();
@@ -180,7 +181,8 @@ void main() {
       }
     });
 
-    testWidgets('should handle errors gracefully throughout app', (tester) async {
+    testWidgets('should handle errors gracefully throughout app',
+        (tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 2));
@@ -242,13 +244,15 @@ void main() {
       }
 
       final duration = DateTime.now().difference(startTime);
-      
+
       // Verify navigation is reasonably fast
       // Each navigation should take less than 1 second
-      expect(duration.inMilliseconds < 15000, true); // 15 seconds for all navigations
+      expect(duration.inMilliseconds < 15000,
+          true); // 15 seconds for all navigations
     });
 
-    testWidgets('should handle large session lists efficiently', (tester) async {
+    testWidgets('should handle large session lists efficiently',
+        (tester) async {
       // Test with many sessions in history
       // Verify scrolling performance
       // Verify pagination works correctly
@@ -276,7 +280,8 @@ void main() {
   });
 
   group('Accessibility Tests', () {
-    testWidgets('should have semantic labels for all interactive elements', (tester) async {
+    testWidgets('should have semantic labels for all interactive elements',
+        (tester) async {
       app.main();
       await tester.pumpAndSettle();
       await tester.pump(const Duration(seconds: 2));

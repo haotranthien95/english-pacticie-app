@@ -33,7 +33,8 @@ void main() {
   }
 
   group('GameConfigScreen - UI Rendering', () {
-    testWidgets('should display loading indicator when loading', (tester) async {
+    testWidgets('should display loading indicator when loading',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(const GameConfigLoading());
 
@@ -44,7 +45,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should display error message when error occurs', (tester) async {
+    testWidgets('should display error message when error occurs',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigError(message: 'Failed to load tags'),
@@ -65,7 +67,7 @@ void main() {
         const Tag(id: '1', name: 'Technology', color: '#FF5722'),
         const Tag(id: '2', name: 'Business', color: '#2196F3'),
       ];
-      
+
       when(mockGameConfigBloc.state).thenReturn(
         GameConfigReady(
           tags: tags,
@@ -112,7 +114,8 @@ void main() {
       expect(find.text('Advanced'), findsOneWidget);
     });
 
-    testWidgets('should dispatch LevelChanged when level selected', (tester) async {
+    testWidgets('should dispatch LevelChanged when level selected',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigReady(
@@ -157,7 +160,8 @@ void main() {
       expect(find.text('Listen & Repeat'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('should dispatch TypeChanged when type selected', (tester) async {
+    testWidgets('should dispatch TypeChanged when type selected',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigReady(
@@ -171,7 +175,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(createGameConfigScreen());
-      
+
       // Find the radio button for Listen & Repeat in the type selector (not the start button)
       final typeRadio = find.ancestor(
         of: find.text('Listen & Repeat'),
@@ -195,7 +199,7 @@ void main() {
         const Tag(id: '2', name: 'Business', color: '#2196F3'),
         const Tag(id: '3', name: 'Travel', color: '#4CAF50'),
       ];
-      
+
       when(mockGameConfigBloc.state).thenReturn(
         GameConfigReady(
           tags: tags,
@@ -220,7 +224,7 @@ void main() {
       final tags = [
         const Tag(id: '1', name: 'Technology', color: '#FF5722'),
       ];
-      
+
       when(mockGameConfigBloc.state).thenReturn(
         GameConfigReady(
           tags: tags,
@@ -248,7 +252,7 @@ void main() {
         const Tag(id: '1', name: 'Technology', color: '#FF5722'),
         const Tag(id: '2', name: 'Business', color: '#2196F3'),
       ];
-      
+
       when(mockGameConfigBloc.state).thenReturn(
         GameConfigReady(
           tags: tags,
@@ -293,7 +297,8 @@ void main() {
       expect(find.text('30'), findsWidgets);
     });
 
-    testWidgets('should dispatch CountChanged when count selected', (tester) async {
+    testWidgets('should dispatch CountChanged when count selected',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigReady(
@@ -307,7 +312,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(createGameConfigScreen());
-      
+
       // Find the 20 button in speech count selector
       final countButton = find.text('20').first;
       await tester.tap(countButton);
@@ -321,7 +326,9 @@ void main() {
   });
 
   group('GameConfigScreen - Start Game', () {
-    testWidgets('should dispatch GameStartRequested when Listen Only button tapped', (tester) async {
+    testWidgets(
+        'should dispatch GameStartRequested when Listen Only button tapped',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigReady(
@@ -335,7 +342,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(createGameConfigScreen());
-      
+
       // Find the Listen Only start button (the large one at bottom)
       final startButton = find.widgetWithText(ElevatedButton, 'Listen Only');
       await tester.tap(startButton);
@@ -347,7 +354,9 @@ void main() {
       )).called(1);
     });
 
-    testWidgets('should dispatch GameStartRequested when Listen & Repeat button tapped', (tester) async {
+    testWidgets(
+        'should dispatch GameStartRequested when Listen & Repeat button tapped',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigReady(
@@ -361,9 +370,10 @@ void main() {
 
       // Act
       await tester.pumpWidget(createGameConfigScreen());
-      
+
       // Find the Listen & Repeat start button
-      final startButton = find.widgetWithText(ElevatedButton, 'Listen & Repeat');
+      final startButton =
+          find.widgetWithText(ElevatedButton, 'Listen & Repeat');
       await tester.tap(startButton);
       await tester.pump();
 
@@ -375,7 +385,8 @@ void main() {
   });
 
   group('GameConfigScreen - Error Handling', () {
-    testWidgets('should retry loading tags when retry button tapped', (tester) async {
+    testWidgets('should retry loading tags when retry button tapped',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigError(message: 'Network error'),
@@ -390,7 +401,8 @@ void main() {
       verify(mockGameConfigBloc.add(const TagsLoadRequested())).called(1);
     });
 
-    testWidgets('should display appropriate error icon and message', (tester) async {
+    testWidgets('should display appropriate error icon and message',
+        (tester) async {
       // Arrange
       when(mockGameConfigBloc.state).thenReturn(
         const GameConfigError(message: 'Server is unavailable'),

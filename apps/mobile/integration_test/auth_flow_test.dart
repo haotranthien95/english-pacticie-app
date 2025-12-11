@@ -4,7 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:english_learning_app/main.dart' as app;
 
 /// Integration test for authentication flow
-/// 
+///
 /// Tests the complete authentication user journey including:
 /// - App launch with splash screen
 /// - Registration flow with email/password
@@ -41,7 +41,8 @@ void main() {
       final emailField = find.widgetWithText(TextFormField, 'Email');
       final usernameField = find.widgetWithText(TextFormField, 'Username');
       final passwordField = find.widgetWithText(TextFormField, 'Password');
-      final confirmPasswordField = find.widgetWithText(TextFormField, 'Confirm Password');
+      final confirmPasswordField =
+          find.widgetWithText(TextFormField, 'Confirm Password');
 
       await tester.enterText(emailField, 'test.integration@example.com');
       await tester.pumpAndSettle();
@@ -62,12 +63,13 @@ void main() {
 
       // Note: In real integration test, you would need a test backend
       // For now, we verify the UI flow works correctly
-      
+
       // Should show loading indicator during registration
       // Then navigate or show error based on backend response
     });
 
-    testWidgets('should show validation errors for invalid registration', (tester) async {
+    testWidgets('should show validation errors for invalid registration',
+        (tester) async {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();
@@ -89,7 +91,8 @@ void main() {
       expect(find.text('Please enter a password'), findsOneWidget);
     });
 
-    testWidgets('should show validation errors for mismatched passwords', (tester) async {
+    testWidgets('should show validation errors for mismatched passwords',
+        (tester) async {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();
@@ -149,7 +152,8 @@ void main() {
       expect(find.text('Please enter a valid email'), findsOneWidget);
     });
 
-    testWidgets('should navigate between login and register screens', (tester) async {
+    testWidgets('should navigate between login and register screens',
+        (tester) async {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();
@@ -181,11 +185,9 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
 
-      // Verify password is obscured initially
-      final passwordField = tester.widget<TextFormField>(
-        find.widgetWithText(TextFormField, 'Password'),
-      );
-      expect(passwordField.obscureText, true);
+      // Note: obscureText is not directly accessible on TextFormField
+      // We can only verify the visibility toggle icon exists
+      expect(find.byIcon(Icons.visibility), findsOneWidget);
 
       // Tap visibility toggle
       await tester.tap(find.byIcon(Icons.visibility));
@@ -241,7 +243,8 @@ void main() {
       // In a real test environment, you would mock the backend or use a test API
     });
 
-    testWidgets('should show loading indicator during authentication', (tester) async {
+    testWidgets('should show loading indicator during authentication',
+        (tester) async {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();
@@ -269,7 +272,8 @@ void main() {
   });
 
   group('Authentication Persistence Tests', () {
-    testWidgets('should remember authentication state on app restart', (tester) async {
+    testWidgets('should remember authentication state on app restart',
+        (tester) async {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();

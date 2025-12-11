@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../presentation/blocs/auth/auth_bloc.dart';
 import '../../presentation/blocs/auth/auth_state.dart';
-import '../di/injection.dart';
+import '../../di/injection.dart';
 
 /// Auth guard to protect routes that require authentication
 ///
@@ -15,7 +15,7 @@ class AuthGuard {
   /// Checks if the user is currently authenticated
   bool get isAuthenticated {
     final state = _authBloc.state;
-    return state is Authenticated;
+    return state is AuthAuthenticated;
   }
 
   /// Determines the redirect path based on authentication status

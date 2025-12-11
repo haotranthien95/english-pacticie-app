@@ -11,14 +11,14 @@ class IntegrationTestHelpers {
     Duration pollInterval = const Duration(milliseconds: 100),
   }) async {
     final endTime = DateTime.now().add(timeout);
-    
+
     while (DateTime.now().isBefore(endTime)) {
       if (finder.evaluate().isNotEmpty) {
         return;
       }
       await tester.pump(pollInterval);
     }
-    
+
     throw TestFailure('Widget not found within timeout: $finder');
   }
 
@@ -30,14 +30,14 @@ class IntegrationTestHelpers {
     Duration pollInterval = const Duration(milliseconds: 100),
   }) async {
     final endTime = DateTime.now().add(timeout);
-    
+
     while (DateTime.now().isBefore(endTime)) {
       if (finder.evaluate().isEmpty) {
         return;
       }
       await tester.pump(pollInterval);
     }
-    
+
     throw TestFailure('Widget still present after timeout: $finder');
   }
 
@@ -53,11 +53,11 @@ class IntegrationTestHelpers {
       if (item.evaluate().isNotEmpty) {
         return;
       }
-      
+
       await tester.drag(scrollable, Offset(0, -delta));
       await tester.pumpAndSettle();
     }
-    
+
     throw TestFailure('Could not find widget by scrolling: $item');
   }
 
@@ -207,7 +207,7 @@ class IntegrationTestHelpers {
   ) async {
     // Screenshots require additional setup
     // This is a placeholder for potential screenshot functionality
-    print('Screenshot would be taken here: $name');
+    debugPrint('Screenshot would be taken here: $name');
   }
 
   /// Verify no errors in console
@@ -233,7 +233,7 @@ class IntegrationTestHelpers {
   ) async {
     // This would require connectivity mocking
     // Placeholder for connectivity testing
-    print('Simulating connectivity: $isConnected');
+    debugPrint('Simulating connectivity: $isConnected');
     await tester.pumpAndSettle();
   }
 
@@ -241,7 +241,7 @@ class IntegrationTestHelpers {
   static Future<void> clearAppData(WidgetTester tester) async {
     // This would require access to storage services
     // Placeholder for data clearing
-    print('Clearing app data');
+    debugPrint('Clearing app data');
   }
 
   /// Generate test session data
@@ -298,7 +298,7 @@ class IntegrationTestHelpers {
   ) {
     final button = find.widgetWithText(ElevatedButton, buttonText);
     expect(button, findsOneWidget);
-    
+
     final widget = tester.widget<ElevatedButton>(button);
     expect(widget.onPressed, isNull);
   }
@@ -310,7 +310,7 @@ class IntegrationTestHelpers {
   ) {
     final button = find.widgetWithText(ElevatedButton, buttonText);
     expect(button, findsOneWidget);
-    
+
     final widget = tester.widget<ElevatedButton>(button);
     expect(widget.onPressed, isNotNull);
   }

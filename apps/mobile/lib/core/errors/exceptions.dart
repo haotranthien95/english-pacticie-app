@@ -86,3 +86,12 @@ class ValidationException extends AppException {
     super.details,
   });
 }
+
+/// Unauthorized/Authentication exceptions (401)
+class UnauthorizedException extends AppException {
+  const UnauthorizedException({
+    required super.message,
+    super.code = '401',
+    super.details,
+  });
+}

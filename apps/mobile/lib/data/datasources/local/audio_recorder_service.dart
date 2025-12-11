@@ -44,13 +44,19 @@ class AudioRecorderService {
       _audioBuffer = null;
       _tempFilePath = null;
 
+      // Generate temp file path for recording
+      final tempDir = Directory.systemTemp;
+      final tempPath =
+          '${tempDir.path}/audio_recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
       // Start recording to stream (record package will use temp file internally)
       await _recorder.start(
-        const RecordConfig(
+        RecordConfig(
           encoder: AudioEncoder.aacLc,
           bitRate: 64000, // 64kbps for good quality with small size
           sampleRate: 16000, // 16kHz for speech recognition
         ),
+        path: tempPath,
       );
     } catch (e) {
       throw AudioRecorderException('Failed to start recording: $e');

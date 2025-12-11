@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/entities/question.dart';
+import '../../domain/entities/speech.dart';
+import '../../domain/entities/game_session.dart';
 import '../../presentation/blocs/auth/auth_bloc.dart';
 import '../../presentation/blocs/auth/auth_state.dart';
 import '../../presentation/screens/auth/login_screen.dart';
@@ -18,7 +18,7 @@ import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/profile/edit_profile_screen.dart';
 import '../../presentation/screens/profile/profile_screen.dart';
 import '../../presentation/screens/profile/settings_screen.dart';
-import '../di/injection.dart';
+import '../../di/injection.dart';
 
 /// Route paths
 class AppRoutes {
@@ -50,7 +50,7 @@ GoRouter createAppRouter(BuildContext context) {
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
     redirect: (context, state) {
       final authState = authBloc.state;
-      final isAuthenticated = authState is Authenticated;
+      final isAuthenticated = authState is AuthAuthenticated;
       final isOnAuthPage = state.matchedLocation == AppRoutes.login ||
           state.matchedLocation == AppRoutes.register ||
           state.matchedLocation == AppRoutes.splash;
@@ -152,39 +152,35 @@ GoRouter createAppRouter(BuildContext context) {
       GoRoute(
         path: AppRoutes.listenOnlyGame,
         builder: (context, state) {
-          final questions = state.extra as List<Question>?;
-          if (questions == null) {
-            return const Scaffold(
-              body: Center(child: Text('No questions provided')),
-            );
-          }
-          return ListenOnlyGameScreen(questions: questions);
+          // Game screens will be launched from game config with proper BLoC setup
+          // This route is here for navigation completeness
+          return const Scaffold(
+            body: Center(child: Text('Launch game from config screen')),
+          );
         },
       ),
 
       GoRoute(
         path: AppRoutes.listenRepeatGame,
         builder: (context, state) {
-          final questions = state.extra as List<Question>?;
-          if (questions == null) {
-            return const Scaffold(
-              body: Center(child: Text('No questions provided')),
-            );
-          }
-          return ListenRepeatGameScreen(questions: questions);
+          // Game screens will be launched from game config with proper BLoC setup
+          // This route is here for navigation completeness
+          return const Scaffold(
+            body: Center(child: Text('Launch game from config screen')),
+          );
         },
       ),
 
       GoRoute(
         path: AppRoutes.gameSummary,
         builder: (context, state) {
-          final sessionId = state.extra as String?;
-          if (sessionId == null) {
+          final session = state.extra as GameSession?;
+          if (session == null) {
             return const Scaffold(
-              body: Center(child: Text('No session ID provided')),
+              body: Center(child: Text('No session provided')),
             );
           }
-          return GameSummaryScreen(sessionId: sessionId);
+          return GameSummaryScreen(session: session);
         },
       ),
 
