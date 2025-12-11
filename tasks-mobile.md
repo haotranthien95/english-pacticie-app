@@ -288,10 +288,10 @@ Foundation ──────┐
 - [X] M066 [P] Write integration tests for complete user flows in integration_test/
 - [X] M067 Profile app performance and fix bottlenecks
 - [X] M068 Optimize image and asset sizes
-- [ ] M069 Test on physical devices (Android and iOS)
-- [ ] M070 Test offline sync functionality thoroughly
-- [ ] M071 Test memory buffer audio recording (no file writes)
-- [ ] M072 Test responsive layouts on tablets (7" and 10"+)
+- [X] M069 Test on physical devices (Android and iOS)
+- [X] M070 Test offline sync functionality thoroughly
+- [X] M071 Test memory buffer audio recording (no file writes)
+- [X] M072 Test responsive layouts on tablets (7" and 10"+)
 - [ ] M073 Configure Firebase Analytics and Crashlytics
 - [ ] M074 Prepare app icons and splash screens
 - [ ] M075 Configure app signing for Android and iOS
