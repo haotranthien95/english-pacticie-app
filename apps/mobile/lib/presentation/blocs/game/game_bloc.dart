@@ -38,7 +38,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<SwipeLeftRequested>(_onSwipeLeftRequested);
     on<SwipeRightRequested>(_onSwipeRightRequested);
     on<AudioReplayRequested>(_onAudioReplayRequested);
-    on<GamePaused>(_onGamePaused);
+    on<GamePauseRequested>(_onGamePaused);
     on<GameResumed>(_onGameResumed);
     on<GameQuitRequested>(_onGameQuitRequested);
     on<GameCompletionRequested>(_onGameCompletionRequested);
@@ -58,12 +58,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
     // Fetch speeches
     final result = await getRandomSpeechesUseCase(
-      GetRandomSpeechesParams(
-        level: event.level,
-        type: event.type,
-        tagIds: event.tagIds.isEmpty ? null : event.tagIds,
-        count: event.count,
-      ),
+      level: event.level,
+      type: event.type,
+      tagIds: event.tagIds.isEmpty ? null : event.tagIds,
+      count: event.count,
     );
 
     await result.fold(
@@ -162,7 +160,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _onGamePaused(
-    GamePaused event,
+    GamePauseRequested event,
     Emitter<GameState> emit,
   ) {
     if (state is GameReady) {
@@ -377,7 +375,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     final result = GameResult(
       speechId: previousState.currentSpeech.id,
       correct: isCorrect,
-      score: scoreResponse.pronunciationScore.toInt(),
+      pronunciationScore: scoreResponse.pronunciationScore,
       timestamp: DateTime.now(),
     );
 

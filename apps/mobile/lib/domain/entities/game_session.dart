@@ -48,6 +48,15 @@ class GameSession extends Equatable {
   /// Check if session is complete
   bool get isComplete => completedAt != null;
 
+  /// Get session duration
+  Duration get duration {
+    final end = completedAt ?? DateTime.now();
+    return end.difference(startedAt);
+  }
+
+  /// Get createdAt timestamp (alias for startedAt for compatibility)
+  DateTime get createdAt => startedAt;
+
   /// Check if session needs sync
   bool get needsSync =>
       syncStatus == SyncStatus.pending || syncStatus == SyncStatus.failed;

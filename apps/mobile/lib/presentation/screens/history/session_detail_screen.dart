@@ -223,7 +223,7 @@ class _SessionDetailView extends StatelessWidget {
     final totalCount = session.results.length;
     final avgScore = session.results.isEmpty
         ? 0.0
-        : session.results.map((r) => r.score ?? 0).reduce((a, b) => a + b) /
+        : session.results.map((r) => r.pronunciationScore ?? 0).reduce((a, b) => a + b) /
             totalCount;
 
     return GridView.count(
@@ -311,7 +311,7 @@ class _SessionDetailView extends StatelessWidget {
   ) {
     final color = result.correct ? Colors.green : Colors.red;
     final icon = result.correct ? Icons.check_circle : Icons.cancel;
-    final hasScore = result.score != null && result.score! > 0;
+    final hasScore = result.pronunciationScore != null && result.pronunciationScore! > 0;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -368,7 +368,7 @@ class _SessionDetailView extends StatelessWidget {
                         Icon(Icons.star, size: 16, color: Colors.amber[700]),
                         const SizedBox(width: 4),
                         Text(
-                          'Score: ${result.score}%',
+                          'Score: ${result.pronunciationScore}%',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[700],
@@ -397,19 +397,19 @@ class _SessionDetailView extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: _getScoreColor(result.score!).withOpacity(0.2),
+                  color: _getScoreColor(result.pronunciationScore!.toInt()).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: _getScoreColor(result.score!),
+                    color: _getScoreColor(result.pronunciationScore!.toInt()),
                     width: 1.5,
                   ),
                 ),
                 child: Text(
-                  '${result.score}%',
+                  '${result.pronunciationScore!.toStringAsFixed(1)}%',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: _getScoreColor(result.score!),
+                    color: _getScoreColor(result.pronunciationScore!.toInt()),
                   ),
                 ),
               ),

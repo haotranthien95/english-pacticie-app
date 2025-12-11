@@ -77,7 +77,7 @@ class _ListenRepeatGameView extends StatelessWidget {
                     if (state is GameRecording) {
                       context.read<GameBloc>().add(const RecordingCancelled());
                     }
-                    context.read<GameBloc>().add(const GamePaused());
+                    context.read<GameBloc>().add(const GamePauseRequested());
                     _showPauseDialog(context);
                   },
                 ),
@@ -441,18 +441,6 @@ class _ListenRepeatGameView extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            if (state.currentSpeech.translation != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                state.currentSpeech.translation!,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[700],
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
           ],
         ),
       ),

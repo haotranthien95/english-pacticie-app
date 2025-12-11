@@ -47,8 +47,8 @@ class AudioReplayRequested extends GameEvent {
 }
 
 /// Event to pause game
-class GamePaused extends GameEvent {
-  const GamePaused();
+class GamePauseRequested extends GameEvent {
+  const GamePauseRequested();
 }
 
 /// Event to resume game

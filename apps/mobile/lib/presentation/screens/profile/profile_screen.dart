@@ -80,14 +80,14 @@ class _ProfileView extends StatelessWidget {
                   children: [
                     const SizedBox(height: 24),
 
-                    // Avatar
-                    _buildAvatar(context, user.avatarUrl),
+                    // Avatar (User entity doesn't have avatarUrl)
+                    _buildAvatar(context, null),
 
                     const SizedBox(height: 24),
 
                     // Name
                     Text(
-                      user.name,
+                      user.displayName ?? user.username,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

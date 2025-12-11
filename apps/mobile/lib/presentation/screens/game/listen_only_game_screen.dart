@@ -72,7 +72,7 @@ class _ListenOnlyGameView extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.pause),
                   onPressed: () {
-                    context.read<GameBloc>().add(const GamePaused());
+                    context.read<GameBloc>().add(const GamePauseRequested());
                     _showPauseDialog(context);
                   },
                 ),
