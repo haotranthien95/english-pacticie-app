@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'data/datasources/local/hive_storage.dart';
 import 'di/injection.dart';
+import 'firebase_options.dart';
 import 'presentation/screens/auth/splash_screen.dart';
 
 void main() async {
@@ -16,8 +17,10 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Initialize Firebase with platform-specific options
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize Hive storage
   await HiveStorage.initialize();
