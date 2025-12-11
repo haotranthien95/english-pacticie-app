@@ -103,7 +103,9 @@ void main() {
       );
     });
 
-    test('should clear token and return UnauthorizedFailure on UnauthorizedException', () async {
+    test(
+        'should clear token and return UnauthorizedFailure on UnauthorizedException',
+        () async {
       // Arrange
       when(mockRemoteDataSource.getProfile()).thenThrow(
         UnauthorizedException(message: 'Unauthorized'),
@@ -289,7 +291,9 @@ void main() {
       );
     });
 
-    test('should clear token and return UnauthorizedFailure on UnauthorizedException', () async {
+    test(
+        'should clear token and return UnauthorizedFailure on UnauthorizedException',
+        () async {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),

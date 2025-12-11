@@ -98,7 +98,8 @@ void main() {
       verifyNever(mockRemoteDataSource.getTags());
     });
 
-    test('should return NetworkFailure when offline and no cached tags', () async {
+    test('should return NetworkFailure when offline and no cached tags',
+        () async {
       // Arrange
       when(mockConnectivity.checkConnectivity()).thenAnswer(
         (_) async => [ConnectivityResult.none],
@@ -138,7 +139,8 @@ void main() {
       verify(mockLocalDataSource.getCachedTags()).called(1);
     });
 
-    test('should return NetworkFailure on NetworkException with no cache', () async {
+    test('should return NetworkFailure on NetworkException with no cache',
+        () async {
       // Arrange
       when(mockConnectivity.checkConnectivity()).thenAnswer(
         (_) async => [ConnectivityResult.wifi],
@@ -372,7 +374,8 @@ void main() {
       );
     });
 
-    test('should return NetworkFailure when offline and no cached speeches', () async {
+    test('should return NetworkFailure when offline and no cached speeches',
+        () async {
       // Arrange
       when(mockConnectivity.checkConnectivity()).thenAnswer(
         (_) async => [ConnectivityResult.none],
