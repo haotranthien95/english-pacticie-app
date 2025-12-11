@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';  // Temporarily disabled
 import '../../../core/constants/enums.dart';
 import '../../../core/errors/exceptions.dart';
 
@@ -45,13 +45,13 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
     try {
       // Trigger Google Sign-In flow
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      
+
       if (googleUser == null) {
         throw const AuthException(message: 'Google sign-in cancelled by user');
       }
 
       // Obtain Google Auth credentials
-      final GoogleSignInAuthentication googleAuth = 
+      final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
       // Create Firebase credential
@@ -61,12 +61,12 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
       );
 
       // Sign in to Firebase
-      final userCredential = 
+      final userCredential =
           await firebaseAuth.signInWithCredential(credential);
-      
+
       // Get Firebase ID token
       final idToken = await userCredential.user?.getIdToken();
-      
+
       if (idToken == null) {
         throw const AuthException(message: 'Failed to get Firebase ID token');
       }
@@ -94,14 +94,14 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
       );
 
       // Create OAuth credential for Firebase
-      final oAuthCredential = firebase_auth.OAuthProvider('apple.com')
-          .credential(
+      final oAuthCredential =
+          firebase_auth.OAuthProvider('apple.com').credential(
         idToken: credential.identityToken,
         accessToken: credential.authorizationCode,
       );
 
       // Sign in to Firebase
-      final userCredential = 
+      final userCredential =
           await firebaseAuth.signInWithCredential(oAuthCredential);
 
       // Get Firebase ID token
@@ -129,7 +129,9 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
 
   @override
   Future<Map<String, String>> signInWithFacebook() async {
-    try {
+    // TODO: Re-enable when flutter_facebook_auth iOS issues are fixed
+    throw const AuthException(message: 'Facebook sign-in temporarily disabled');
+    /* try {
       // Trigger Facebook Sign-In flow
       final LoginResult result = await FacebookAuth.instance.login(
         permissions: ['email', 'public_profile'],
@@ -167,7 +169,7 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
       throw AuthException(message: 'Facebook sign-in failed: ${e.message}');
     } catch (e) {
       throw AuthException(message: 'Facebook sign-in error: $e');
-    }
+    } */
   }
 
   @override
@@ -176,7 +178,7 @@ class FirebaseAuthServiceImpl implements FirebaseAuthService {
       await Future.wait([
         firebaseAuth.signOut(),
         googleSignIn.signOut(),
-        FacebookAuth.instance.logOut(),
+        // FacebookAuth.instance.logOut(),  // Temporarily disabled
       ]);
     } catch (e) {
       throw AuthException(message: 'Sign-out failed: $e');

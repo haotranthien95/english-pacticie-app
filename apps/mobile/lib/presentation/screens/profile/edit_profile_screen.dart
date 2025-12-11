@@ -27,7 +27,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.user.displayName ?? widget.user.username);
+    _nameController = TextEditingController(
+        text: widget.user.displayName ?? widget.user.username);
     _avatarUrlController =
         TextEditingController(text: ''); // User entity doesn't have avatarUrl
   }
@@ -192,7 +193,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final avatarUrl = _avatarUrlController.text.trim();
 
       // Check if anything changed
-      final nameChanged = name != (widget.user.displayName ?? widget.user.username);
+      final nameChanged =
+          name != (widget.user.displayName ?? widget.user.username);
       final avatarChanged = false; // User entity doesn't support avatarUrl
 
       if (!nameChanged && !avatarChanged) {

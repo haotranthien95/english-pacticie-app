@@ -36,11 +36,11 @@ dependencies:
   firebase_auth: ^5.3.3
   google_sign_in: ^6.2.2
   sign_in_with_apple: ^6.1.3
-  flutter_facebook_auth: ^7.1.1
+  # flutter_facebook_auth: ^7.1.1  # Temporarily disabled due to iOS compilation issues
 
   # Audio
   just_audio: ^0.9.42
-  record: ^5.1.2
+  record: ^6.0.0  # Updated to fix iOS compatibility issues
   path_provider: ^2.1.5
 
   # Navigation

@@ -223,7 +223,9 @@ class _SessionDetailView extends StatelessWidget {
     final totalCount = session.results.length;
     final avgScore = session.results.isEmpty
         ? 0.0
-        : session.results.map((r) => r.pronunciationScore ?? 0).reduce((a, b) => a + b) /
+        : session.results
+                .map((r) => r.pronunciationScore ?? 0)
+                .reduce((a, b) => a + b) /
             totalCount;
 
     return GridView.count(
@@ -311,7 +313,8 @@ class _SessionDetailView extends StatelessWidget {
   ) {
     final color = result.correct ? Colors.green : Colors.red;
     final icon = result.correct ? Icons.check_circle : Icons.cancel;
-    final hasScore = result.pronunciationScore != null && result.pronunciationScore! > 0;
+    final hasScore =
+        result.pronunciationScore != null && result.pronunciationScore! > 0;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -397,7 +400,8 @@ class _SessionDetailView extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: _getScoreColor(result.pronunciationScore!.toInt()).withOpacity(0.2),
+                  color: _getScoreColor(result.pronunciationScore!.toInt())
+                      .withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: _getScoreColor(result.pronunciationScore!.toInt()),
