@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "142566408634",
+    "project_id": "haotran-enpratici",
+    "storage_bucket": "haotran-enpratici.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142566408634:android:33fb531481f083e01a1d83",
+        "android_client_info": {
+          "package_name": "vn.reetro.eng.app.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN2IynqzsUqIJ0cFUmA5Y0E7PBCzQdjzg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

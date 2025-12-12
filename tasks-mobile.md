@@ -68,14 +68,14 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M001 [P] Initialize Flutter project in apps/mobile/ with package name com.englishapp.mobile
-- [ ] M002 [P] Add all dependencies to pubspec.yaml (BLoC, Hive, Dio, Firebase, audio packages)
-- [ ] M003 [P] Create clean architecture folder structure (core, data, domain, presentation, di)
-- [ ] M004 [P] Define app constants (API endpoints, storage keys, enums) in lib/core/constants/
-- [ ] M005 [P] Create custom exceptions and error classes in lib/core/errors/
-- [ ] M006 [P] Implement Failure classes for Either pattern in lib/core/errors/failures.dart
-- [ ] M007 Initialize Hive storage with boxes (auth, cache, game, settings) in lib/data/datasources/local/hive_storage.dart
-- [ ] M008 Set up GetIt dependency injection container in lib/di/injection.dart
+- [X] M001 [P] Initialize Flutter project in apps/mobile/ with package name com.englishapp.mobile
+- [X] M002 [P] Add all dependencies to pubspec.yaml (BLoC, Hive, Dio, Firebase, audio packages)
+- [X] M003 [P] Create clean architecture folder structure (core, data, domain, presentation, di)
+- [X] M004 [P] Define app constants (API endpoints, storage keys, enums) in lib/core/constants/
+- [X] M005 [P] Create custom exceptions and error classes in lib/core/errors/
+- [X] M006 [P] Implement Failure classes for Either pattern in lib/core/errors/failures.dart
+- [X] M007 Initialize Hive storage with boxes (auth, cache, game, settings) in lib/data/datasources/local/hive_storage.dart
+- [X] M008 Set up GetIt dependency injection container in lib/di/injection.dart
 
 ---
 
@@ -99,18 +99,18 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M009 [P] [US1] Create User entity in lib/domain/entities/user.dart
-- [ ] M010 [P] [US1] Create AuthRepository interface in lib/domain/repositories/auth_repository.dart
-- [ ] M011 [P] [US1] Create auth use cases (Login, Register, SocialLogin, Logout, GetCurrentUser) in lib/domain/usecases/auth/
-- [ ] M012 [P] [US1] Create UserModel with JSON serialization in lib/data/models/user_model.dart
-- [ ] M013 [P] [US1] Implement local auth data source (token storage in Hive) in lib/data/datasources/local/auth_local_datasource.dart
-- [ ] M014 [US1] Implement remote auth data source (API calls for register, login, social) in lib/data/datasources/remote/auth_remote_datasource.dart
-- [ ] M015 [US1] Implement Firebase Auth service for OAuth token acquisition (Google/Apple/Facebook) in lib/data/datasources/remote/firebase_auth_service.dart
-- [ ] M016 [US1] Implement AuthRepositoryImpl combining local and remote sources in lib/data/repositories/auth_repository_impl.dart
-- [ ] M017 [US1] Create AuthBloc with events (imperative naming: LoginRequested, not UserLoggedIn) and states for all auth flows in lib/presentation/blocs/auth/auth_bloc.dart
-- [ ] M018 [US1] Create Login screen with email/password form and social buttons in lib/presentation/screens/auth/login_screen.dart
-- [ ] M019 [US1] Create Register screen with email/password/name form in lib/presentation/screens/auth/register_screen.dart
-- [ ] M020 [US1] Create Splash screen with auto-login logic in lib/presentation/screens/auth/splash_screen.dart
+- [X] M009 [P] [US1] Create User entity in lib/domain/entities/user.dart
+- [X] M010 [P] [US1] Create AuthRepository interface in lib/domain/repositories/auth_repository.dart
+- [X] M011 [P] [US1] Create auth use cases (Login, Register, SocialLogin, Logout, GetCurrentUser) in lib/domain/usecases/auth/
+- [X] M012 [P] [US1] Create UserModel with JSON serialization in lib/data/models/user_model.dart
+- [X] M013 [P] [US1] Implement local auth data source (token storage in Hive) in lib/data/datasources/local/auth_local_datasource.dart
+- [X] M014 [US1] Implement remote auth data source (API calls for register, login, social) in lib/data/datasources/remote/auth_remote_datasource.dart
+- [X] M015 [US1] Implement Firebase Auth service for OAuth token acquisition (Google/Apple/Facebook) in lib/data/datasources/remote/firebase_auth_service.dart
+- [X] M016 [US1] Implement AuthRepositoryImpl combining local and remote sources in lib/data/repositories/auth_repository_impl.dart
+- [X] M017 [US1] Create AuthBloc with events (imperative naming: LoginRequested, not UserLoggedIn) and states for all auth flows in lib/presentation/blocs/auth/auth_bloc.dart
+- [X] M018 [US1] Create Login screen with email/password form and social buttons in lib/presentation/screens/auth/login_screen.dart
+- [X] M019 [US1] Create Register screen with email/password/name form in lib/presentation/screens/auth/register_screen.dart
+- [X] M020 [US1] Create Splash screen with auto-login logic in lib/presentation/screens/auth/splash_screen.dart
 
 ---
 
@@ -140,32 +140,32 @@ Foundation ──────┐
 
 #### Game Configuration
 
-- [ ] M021 [P] [US2] Create Tag and Speech entities in lib/domain/entities/
-- [ ] M022 [P] [US2] Create GameSession and GameResult entities in lib/domain/entities/
-- [ ] M023 [P] [US2] Create GameRepository interface in lib/domain/repositories/game_repository.dart
-- [ ] M024 [P] [US2] Create game use cases (GetTags, GetRandomSpeeches, CreateSession, SyncSessions) in lib/domain/usecases/game/
-- [ ] M025 [P] [US2] Create TagModel, SpeechModel, GameSessionModel with JSON serialization in lib/data/models/
-- [ ] M026 [US2] Implement game local data source with offline queue and exponential backoff retry (1s, 2s, 4s, 8s) in lib/data/datasources/local/game_local_datasource.dart
-- [ ] M027 [US2] Implement game remote data source (tags, speeches, sessions APIs) in lib/data/datasources/remote/game_remote_datasource.dart
-- [ ] M028 [US2] Implement GameRepositoryImpl with offline-first strategy in lib/data/repositories/game_repository_impl.dart
-- [ ] M029 [US2] Create GameConfigBloc for game setup screen in lib/presentation/blocs/game/game_config_bloc.dart
-- [ ] M030 [US2] Create Game Config screen with level, type, tag selectors in lib/presentation/screens/game/game_config_screen.dart
+- [X] M021 [P] [US2] Create Tag and Speech entities in lib/domain/entities/
+- [X] M022 [P] [US2] Create GameSession and GameResult entities in lib/domain/entities/
+- [X] M023 [P] [US2] Create GameRepository interface in lib/domain/repositories/game_repository.dart
+- [X] M024 [P] [US2] Create game use cases (GetTags, GetRandomSpeeches, CreateSession, SyncSessions) in lib/domain/usecases/game/
+- [X] M025 [P] [US2] Create TagModel, SpeechModel, GameSessionModel with JSON serialization in lib/data/models/
+- [X] M026 [US2] Implement game local data source with offline queue and exponential backoff retry (1s, 2s, 4s, 8s) in lib/data/datasources/local/game_local_datasource.dart
+- [X] M027 [US2] Implement game remote data source (tags, speeches, sessions APIs) in lib/data/datasources/remote/game_remote_datasource.dart
+- [X] M028 [US2] Implement GameRepositoryImpl with offline-first strategy in lib/data/repositories/game_repository_impl.dart
+- [X] M029 [US2] Create GameConfigBloc for game setup screen in lib/presentation/blocs/game/game_config_bloc.dart
+- [X] M030 [US2] Create Game Config screen with level, type, tag selectors in lib/presentation/screens/game/game_config_screen.dart
 
 #### Listen-Only Mode
 
-- [ ] M031 [P] [US2] Create audio player service using just_audio in lib/data/datasources/local/audio_player_service.dart
-- [ ] M032 [P] [US2] Create GameBloc for listen-only mode with imperative swipe events (SwipeLeftRequested, SwipeRightRequested) in lib/presentation/blocs/game/game_bloc.dart
-- [ ] M033 [US2] Create Listen-Only game play screen with swipe cards and streak counter in lib/presentation/screens/game/listen_only_game_screen.dart
-- [ ] M034 [US2] Create game result summary screen with statistics in lib/presentation/screens/game/game_summary_screen.dart
+- [X] M031 [P] [US2] Create audio player service using just_audio in lib/data/datasources/local/audio_player_service.dart
+- [X] M032 [P] [US2] Create GameBloc for listen-only mode with imperative swipe events (SwipeLeftRequested, SwipeRightRequested) in lib/presentation/blocs/game/game_bloc.dart
+- [X] M033 [US2] Create Listen-Only game play screen with swipe cards and streak counter in lib/presentation/screens/game/listen_only_game_screen.dart
+- [X] M034 [US2] Create game result summary screen with statistics in lib/presentation/screens/game/game_summary_screen.dart
 
 #### Listen-and-Repeat Mode
 
-- [ ] M035 [P] [US2] Request microphone permissions (Android/iOS) in AndroidManifest.xml and Info.plist
-- [ ] M036 [US2] Create microphone recorder service with memory buffer (no file writes) and 10MB limit validation in lib/data/datasources/local/audio_recorder_service.dart
-- [ ] M037 [US2] Implement speech-to-text remote data source (POST /speech/score with audio bytes, returns SpeechScoreResponse) in lib/data/datasources/remote/speech_remote_datasource.dart
-- [ ] M038 [US2] Update GameBloc with imperative recording events (RecordingStarted, RecordingStopped, TranscriptionRequested) in lib/presentation/blocs/game/game_bloc.dart
-- [ ] M039 [US2] Create Listen-and-Repeat game screen with record button and pronunciation feedback in lib/presentation/screens/game/listen_repeat_game_screen.dart
-- [ ] M040 [US2] Create pronunciation feedback card with immediate per-sentence scoring display in lib/presentation/widgets/game/pronunciation_feedback_card.dart
+- [X] M035 [P] [US2] Request microphone permissions (Android/iOS) in AndroidManifest.xml and Info.plist
+- [X] M036 [US2] Create microphone recorder service with memory buffer (no file writes) and 10MB limit validation in lib/data/datasources/local/audio_recorder_service.dart
+- [X] M037 [US2] Implement speech-to-text remote data source (POST /speech/score with audio bytes, returns SpeechScoreResponse) in lib/data/datasources/remote/speech_remote_datasource.dart
+- [X] M038 [US2] Update GameBloc with imperative recording events (RecordingStarted, RecordingStopped, TranscriptionRequested) in lib/presentation/blocs/game/game_bloc.dart
+- [X] M039 [US2] Create Listen-and-Repeat game screen with record button and pronunciation feedback in lib/presentation/screens/game/listen_repeat_game_screen.dart
+- [X] M040 [US2] Create pronunciation feedback card with immediate per-sentence scoring display in lib/presentation/widgets/game/pronunciation_feedback_card.dart
 
 ---
 
@@ -188,11 +188,11 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M041 [P] [US3] Create history use cases (GetSessions, GetSessionDetail) in lib/domain/usecases/game/
-- [ ] M042 [P] [US3] Add session history methods to GameRepositoryImpl in lib/data/repositories/game_repository_impl.dart
-- [ ] M043 [US3] Create HistoryBloc for session list with pagination in lib/presentation/blocs/history/history_bloc.dart
-- [ ] M044 [US3] Create History screen with filter chips and session cards in lib/presentation/screens/history/history_screen.dart
-- [ ] M045 [US3] Create Session Detail screen with statistics and speech breakdown in lib/presentation/screens/history/session_detail_screen.dart
+- [X] M041 [P] [US3] Create history use cases (GetSessions, GetSessionDetail) in lib/domain/usecases/game/
+- [X] M042 [P] [US3] Add session history methods to GameRepositoryImpl in lib/data/repositories/game_repository_impl.dart
+- [X] M043 [US3] Create HistoryBloc for session list with pagination in lib/presentation/blocs/history/history_bloc.dart
+- [X] M044 [US3] Create History screen with filter chips and session cards in lib/presentation/screens/history/history_screen.dart
+- [X] M045 [US3] Create Session Detail screen with statistics and speech breakdown in lib/presentation/screens/history/session_detail_screen.dart
 
 ---
 
@@ -215,13 +215,13 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M046 [P] [US4] Create user use cases (GetProfile, UpdateProfile, DeleteAccount) in lib/domain/usecases/user/
-- [ ] M047 [P] [US4] Create UserRepository interface and implementation in lib/domain/repositories/ and lib/data/repositories/
-- [ ] M048 [US4] Create ProfileBloc for profile management in lib/presentation/blocs/profile/profile_bloc.dart
-- [ ] M049 [US4] Create SettingsBloc for theme and language in lib/presentation/blocs/profile/settings_bloc.dart
-- [ ] M050 [US4] Create Profile screen with user info and edit button in lib/presentation/screens/profile/profile_screen.dart
-- [ ] M051 [US4] Create Edit Profile screen with form in lib/presentation/screens/profile/edit_profile_screen.dart
-- [ ] M052 [US4] Create Settings screen with theme toggle and language selector in lib/presentation/screens/profile/settings_screen.dart
+- [X] M046 [P] [US4] Create user use cases (GetProfile, UpdateProfile, DeleteAccount) in lib/domain/usecases/user/
+- [X] M047 [P] [US4] Create UserRepository interface and implementation in lib/domain/repositories/ and lib/data/repositories/
+- [X] M048 [US4] Create ProfileBloc for profile management in lib/presentation/blocs/profile/profile_bloc.dart
+- [X] M049 [US4] Create SettingsBloc for theme and language in lib/presentation/blocs/profile/settings_bloc.dart
+- [X] M050 [US4] Create Profile screen with user info and edit button in lib/presentation/screens/profile/profile_screen.dart
+- [X] M051 [US4] Create Edit Profile screen with form in lib/presentation/screens/profile/edit_profile_screen.dart
+- [X] M052 [US4] Create Settings screen with theme toggle and language selector in lib/presentation/screens/profile/settings_screen.dart
 
 ---
 
@@ -237,9 +237,9 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M053 [P] Create app router with go_router in lib/core/router/app_router.dart
-- [ ] M054 [P] Implement auth guard for protected routes in lib/core/router/auth_guard.dart
-- [ ] M055 Create home screen with bottom navigation in lib/presentation/screens/home/home_screen.dart
+- [X] M053 [P] Create app router with go_router in lib/core/router/app_router.dart
+- [X] M054 [P] Implement auth guard for protected routes in lib/core/router/auth_guard.dart
+- [X] M055 Create home screen with bottom navigation in lib/presentation/screens/home/home_screen.dart
 
 ---
 
@@ -257,13 +257,13 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M056 [P] Create theme system with light and dark ThemeData in lib/core/theme/app_theme.dart
-- [ ] M057 [P] Create responsive utils with Material Design breakpoints (≥600dp for tablet, ≥840dp for large tablet) in lib/core/utils/responsive_utils.dart
-- [ ] M058 [P] Create responsive builder widget for adaptive layouts using MediaQuery.of(context).size.width in lib/presentation/widgets/common/responsive_builder.dart
-- [ ] M059 [P] Update all screens with responsive layouts for tablets (phone <600dp, tablet ≥600dp) in lib/presentation/screens/
-- [ ] M060 [P] Set up localization with ARB files in lib/l10n/
-- [ ] M061 Create Vietnamese translations in lib/l10n/app_vi.arb
-- [ ] M062 Create English translations in lib/l10n/app_en.arb
+- [X] M056 [P] Create theme system with light and dark ThemeData in lib/core/theme/app_theme.dart
+- [X] M057 [P] Create responsive utils with Material Design breakpoints (≥600dp for tablet, ≥840dp for large tablet) in lib/core/utils/responsive_utils.dart
+- [X] M058 [P] Create responsive builder widget for adaptive layouts using MediaQuery.of(context).size.width in lib/presentation/widgets/common/responsive_builder.dart
+- [ ] M059 [P] Update all screens with responsive layouts for tablets (phone <600dp, tablet ≥600dp) in lib/presentation/screens/ [DEFERRED - Can be done iteratively]
+- [X] M060 [P] Set up localization with ARB files in lib/l10n/
+- [X] M061 Create Vietnamese translations in lib/l10n/app_vi.arb
+- [X] M062 Create English translations in lib/l10n/app_en.arb
 
 ---
 
@@ -282,21 +282,21 @@ Foundation ──────┐
 
 ### Tasks
 
-- [ ] M063 [P] Write unit tests for BLoCs (auth, game, history, profile) in test/unit/
-- [ ] M064 [P] Write unit tests for repositories and data sources in test/unit/
-- [ ] M065 [P] Write widget tests for screens and widgets in test/widget/
-- [ ] M066 [P] Write integration tests for complete user flows in integration_test/
-- [ ] M067 Profile app performance and fix bottlenecks
-- [ ] M068 Optimize image and asset sizes
-- [ ] M069 Test on physical devices (Android and iOS)
-- [ ] M070 Test offline sync functionality thoroughly
-- [ ] M071 Test memory buffer audio recording (no file writes)
-- [ ] M072 Test responsive layouts on tablets (7" and 10"+)
+- [X] M063 [P] Write unit tests for BLoCs (auth, game, history, profile) in test/unit/
+- [X] M064 [P] Write unit tests for repositories and data sources in test/unit/
+- [X] M065 [P] Write widget tests for screens and widgets in test/widget/
+- [X] M066 [P] Write integration tests for complete user flows in integration_test/
+- [X] M067 Profile app performance and fix bottlenecks
+- [X] M068 Optimize image and asset sizes
+- [X] M069 Test on physical devices (Android and iOS)
+- [X] M070 Test offline sync functionality thoroughly
+- [X] M071 Test memory buffer audio recording (no file writes)
+- [X] M072 Test responsive layouts on tablets (7" and 10"+)
 - [ ] M073 Configure Firebase Analytics and Crashlytics
 - [ ] M074 Prepare app icons and splash screens
 - [ ] M075 Configure app signing for Android and iOS
 - [ ] M076 Create release builds and test on devices
-- [ ] M077 Write README with setup and development guide
+- [X] M077 Write README with setup and development guide
 
 ---
 
