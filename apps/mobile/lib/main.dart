@@ -1,3 +1,4 @@
+import 'package:english_learning_app/presentation/blocs/auth/auth_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<AuthBloc>()..add(const AppStarted()),
+      create: (context) => getIt<AuthBloc>()..add(const AuthCheckRequested()),
       child: MaterialApp(
         title: 'English Practice',
         debugShowCheckedModeBanner: false,
