@@ -227,7 +227,7 @@ class UserAdmin(ModelView, model=User):
     page_size = 50
     page_size_options = [25, 50, 100]
     
-    # Form configuration (for edit only)
+    # Form configuration (for edit only - only editable fields)
     form_columns = [
         User.name,
         User.avatar_url,
@@ -244,10 +244,6 @@ class UserAdmin(ModelView, model=User):
         User.created_at: "Created",
         User.updated_at: "Updated",
     }
-    
-    # Exclude sensitive fields from display
-    column_exclude_list = [User.password_hash]
-    form_excluded_columns = [User.password_hash, User.email, User.auth_provider, User.auth_provider_id]
 
 
 class GameSessionAdmin(ModelView, model=GameSession):
@@ -275,8 +271,7 @@ class GameSessionAdmin(ModelView, model=GameSession):
         GameSession.mode,
         GameSession.level,
         GameSession.total_speeches,
-        GameSession.avg_accuracy,
-        GameSession.avg_fluency,
+        GameSession.avg_pronunciation_score,
         GameSession.completed_at,
     ]
     
@@ -286,11 +281,14 @@ class GameSessionAdmin(ModelView, model=GameSession):
         GameSession.mode,
         GameSession.level,
         GameSession.total_speeches,
-        GameSession.avg_accuracy,
-        GameSession.avg_fluency,
-        GameSession.avg_completeness,
-        GameSession.avg_pronunciation,
-        GameSession.started_at,
+        GameSession.correct_count,
+        GameSession.incorrect_count,
+        GameSession.skipped_count,
+        GameSession.avg_pronunciation_score,
+        GameSession.avg_accuracy_score,
+        GameSession.avg_fluency_score,
+        GameSession.avg_accuracy_score,
+        GameSession.avg_fluency_score,
         GameSession.completed_at,
     ]
     
@@ -302,7 +300,7 @@ class GameSessionAdmin(ModelView, model=GameSession):
         GameSession.mode,
         GameSession.level,
         GameSession.total_speeches,
-        GameSession.avg_accuracy,
+        GameSession.avg_pronunciation_score,
         GameSession.completed_at,
     ]
     
@@ -326,18 +324,18 @@ class GameSessionAdmin(ModelView, model=GameSession):
         GameSession.mode: "Game Mode",
         GameSession.level: "Level",
         GameSession.total_speeches: "Total Speeches",
-        GameSession.avg_accuracy: "Avg Accuracy",
-        GameSession.avg_fluency: "Avg Fluency",
-        GameSession.avg_completeness: "Avg Completeness",
-        GameSession.avg_pronunciation: "Avg Pronunciation",
-        GameSession.started_at: "Started",
+        GameSession.correct_count: "Correct",
+        GameSession.incorrect_count: "Incorrect",
+        GameSession.skipped_count: "Skipped",
+        GameSession.avg_pronunciation_score: "Avg Pronunciation",
+        GameSession.avg_accuracy_score: "Avg Accuracy",
+        GameSession.avg_fluency_score: "Avg Fluency",
         GameSession.completed_at: "Completed",
     }
     
     # Column formatters for percentages
     column_formatters = {
-        GameSession.avg_accuracy: lambda m, a: f"{m.avg_accuracy:.1f}%" if m.avg_accuracy else "N/A",
-        GameSession.avg_fluency: lambda m, a: f"{m.avg_fluency:.1f}%" if m.avg_fluency else "N/A",
-        GameSession.avg_completeness: lambda m, a: f"{m.avg_completeness:.1f}%" if m.avg_completeness else "N/A",
-        GameSession.avg_pronunciation: lambda m, a: f"{m.avg_pronunciation:.1f}%" if m.avg_pronunciation else "N/A",
+        GameSession.avg_pronunciation_score: lambda m, a: f"{m.avg_pronunciation_score:.1f}%" if m.avg_pronunciation_score else "N/A",
+        GameSession.avg_accuracy_score: lambda m, a: f"{m.avg_accuracy_score:.1f}%" if m.avg_accuracy_score else "N/A",
+        GameSession.avg_fluency_score: lambda m, a: f"{m.avg_fluency_score:.1f}%" if m.avg_fluency_score else "N/A",
     }

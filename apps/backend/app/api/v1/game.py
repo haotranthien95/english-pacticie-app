@@ -144,9 +144,9 @@ async def complete_game_session(
 )
 async def get_game_session(
     session_id: UUID,
-    include_results: bool = False,
     user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
+    include_results: bool = False,
 ) -> GameSessionResponse:
     """
     Fetch game session by ID.
@@ -175,12 +175,12 @@ async def get_game_session(
     },
 )
 async def get_user_sessions(
+    user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
     mode: str = None,
     level: str = None,
     limit: int = 20,
     offset: int = 0,
-    user: CurrentUser,
-    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[GameSessionResponse]:
     """
     Fetch user's game session history with pagination.
