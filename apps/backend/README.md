@@ -89,7 +89,7 @@ alembic upgrade head
 python -m app.main
 
 # Or use uvicorn directly
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 3000
 ```
 
 ### 6. Access API

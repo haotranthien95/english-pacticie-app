@@ -77,7 +77,8 @@ async def lifespan(app: FastAPI):
     # Create database tables (for development only, use Alembic in production)
     if settings.debug:
         logger.info("creating_database_tables")
-        Base.metadata.create_all(bind=engine)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
     
     yield
     

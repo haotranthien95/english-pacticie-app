@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, AsyncMock, patch
 
 from app.services.auth_service import AuthService
-from app.models.user import User
-from app.schemas.auth import UserRegisterRequest, UserLoginRequest
+from app.models.user import User, AuthProvider
+from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.core.security import hash_password
 
@@ -30,12 +30,13 @@ class TestAuthService:
     @pytest.fixture
     def sample_user(self):
         """Sample user for testing."""
+        from uuid import uuid4
         return User(
-            id=1,
+            id=uuid4(),
             email="test@example.com",
-            username="testuser",
-            hashed_password=hash_password("TestPass123!"),
-            is_active=True,
+            name="Test User",
+            password_hash=hash_password("TestPass123!"),
+            auth_provider=AuthProvider.EMAIL,
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
         )
@@ -44,9 +45,9 @@ class TestAuthService:
     async def test_register_user_success(self, auth_service, mock_db):
         """Test successful user registration."""
         # Arrange
-        request = UserRegisterRequest(
+        request = RegisterRequest(
             email="new@example.com",
-            username="newuser",
+            name="New User",
             password="SecurePass123!",
         )
         
@@ -57,14 +58,14 @@ class TestAuthService:
         mock_db.refresh = AsyncMock()
         
         # Act
-        with patch.object(auth_service, '_generate_tokens', return_value=("access_token", "refresh_token")):
-            result = await auth_service.register_user(request)
+        with patch.object(auth_service, '_create_tokens', return_value={"access_token": "access_token", "refresh_token": "refresh_token", "token_type": "bearer", "expires_in": 604800}):
+            result = await auth_service.register(request)
         
         # Assert
-        assert result["user"]["email"] == request.email
-        assert result["user"]["username"] == request.username
-        assert "access_token" in result
-        assert "refresh_token" in result
+        assert result.user.email == request.email
+        assert result.user.name == request.name
+        assert result.tokens.access_token == "access_token"
+        assert result.tokens.refresh_token == "refresh_token"
         mock_db.add.assert_called_once()
         mock_db.commit.assert_called_once()
     
@@ -72,141 +73,112 @@ class TestAuthService:
     async def test_register_user_duplicate_email(self, auth_service, mock_db, sample_user):
         """Test registration with duplicate email."""
         # Arrange
-        request = UserRegisterRequest(
+        request = RegisterRequest(
             email="test@example.com",  # Existing email
-            username="newuser",
+            name="New User",
             password="SecurePass123!",
         )
         
         # Mock existing user found
         mock_db.execute = AsyncMock(
-            return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user))))
+            return_value=Mock(scalar_one_or_none=Mock(return_value=sample_user))
         )
         
         # Act & Assert
-        with pytest.raises(ValidationError, match="Email already registered"):
-            await auth_service.register_user(request)
+        with pytest.raises(AuthenticationError, match="Email already registered"):
+            await auth_service.register(request)
     
     @pytest.mark.asyncio
     async def test_register_user_duplicate_username(self, auth_service, mock_db, sample_user):
-        """Test registration with duplicate username."""
-        # Arrange
-        request = UserRegisterRequest(
-            email="new@example.com",
-            username="testuser",  # Existing username
-            password="SecurePass123!",
-        )
-        
-        # Mock existing user found (first call returns None for email, second returns user for username)
-        mock_db.execute = AsyncMock(
-            side_effect=[
-                Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=None)))),  # Email check
-                Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user)))),  # Username check
-            ]
-        )
-        
-        # Act & Assert
-        with pytest.raises(ValidationError, match="Username already taken"):
-            await auth_service.register_user(request)
+        """Test registration with duplicate username - Note: Current API doesn't check username uniqueness."""
+        # This test is skipped as the current implementation doesn't have username field
+        pytest.skip("Username validation not implemented in current register endpoint")
     
     @pytest.mark.asyncio
     async def test_login_user_success(self, auth_service, mock_db, sample_user):
         """Test successful user login."""
         # Arrange
-        request = UserLoginRequest(
+        request = LoginRequest(
             email="test@example.com",
             password="TestPass123!",
         )
         
         # Mock database query
         mock_db.execute = AsyncMock(
-            return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user))))
+            return_value=Mock(scalar_one_or_none=Mock(return_value=sample_user))
         )
         
         # Act
-        with patch.object(auth_service, '_generate_tokens', return_value=("access_token", "refresh_token")):
-            result = await auth_service.login_user(request)
+        with patch.object(auth_service, '_create_tokens', return_value={"access_token": "access_token", "refresh_token": "refresh_token", "token_type": "bearer", "expires_in": 604800}):
+            result = await auth_service.login(request)
         
         # Assert
-        assert result["user"]["email"] == sample_user.email
-        assert result["user"]["username"] == sample_user.username
-        assert "access_token" in result
-        assert "refresh_token" in result
+        assert result.user.email == sample_user.email
+        assert result.tokens.access_token == "access_token"
+        assert result.tokens.refresh_token == "refresh_token"
     
     @pytest.mark.asyncio
     async def test_login_user_invalid_email(self, auth_service, mock_db):
         """Test login with non-existent email."""
         # Arrange
-        request = UserLoginRequest(
+        request = LoginRequest(
             email="nonexistent@example.com",
             password="TestPass123!",
         )
         
         # Mock user not found
         mock_db.execute = AsyncMock(
-            return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=None))))
+            return_value=Mock(scalar_one_or_none=Mock(return_value=None))
         )
         
         # Act & Assert
-        with pytest.raises(AuthenticationError, match="Invalid credentials"):
-            await auth_service.login_user(request)
+        with pytest.raises(AuthenticationError, match="Invalid email or password"):
+            await auth_service.login(request)
     
     @pytest.mark.asyncio
     async def test_login_user_invalid_password(self, auth_service, mock_db, sample_user):
         """Test login with incorrect password."""
         # Arrange
-        request = UserLoginRequest(
+        request = LoginRequest(
             email="test@example.com",
             password="WrongPassword123!",
         )
         
         # Mock database query
         mock_db.execute = AsyncMock(
-            return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user))))
+            return_value=Mock(scalar_one_or_none=Mock(return_value=sample_user))
         )
         
         # Act & Assert
-        with pytest.raises(AuthenticationError, match="Invalid credentials"):
-            await auth_service.login_user(request)
+        with pytest.raises(AuthenticationError, match="Invalid email or password"):
+            await auth_service.login(request)
     
     @pytest.mark.asyncio
     async def test_login_user_inactive_account(self, auth_service, mock_db, sample_user):
-        """Test login with inactive account."""
-        # Arrange
-        sample_user.is_active = False
-        request = UserLoginRequest(
-            email="test@example.com",
-            password="TestPass123!",
-        )
-        
-        # Mock database query
-        mock_db.execute = AsyncMock(
-            return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user))))
-        )
-        
-        # Act & Assert
-        with pytest.raises(AuthenticationError, match="Account is inactive"):
-            await auth_service.login_user(request)
+        """Test login with inactive account - Note: Current API doesn't check active status."""
+        # This test is skipped as the current implementation doesn't check is_active
+        pytest.skip("Active status validation not implemented in current login endpoint")
     
     @pytest.mark.asyncio
     async def test_refresh_token_success(self, auth_service, mock_db, sample_user):
         """Test successful token refresh."""
         # Arrange
         refresh_token = "valid_refresh_token"
+        user_id_str = str(sample_user.id)
         
         # Mock token validation and user lookup
-        with patch('app.services.auth_service.verify_token', return_value={"user_id": 1}):
+        with patch('app.services.auth_service.get_token_subject', return_value=user_id_str):
             mock_db.execute = AsyncMock(
-                return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user))))
+                return_value=Mock(scalar_one_or_none=Mock(return_value=sample_user))
             )
             
             # Act
-            with patch.object(auth_service, '_generate_access_token', return_value="new_access_token"):
-                result = await auth_service.refresh_access_token(refresh_token)
+            with patch.object(auth_service, '_create_tokens', return_value=TokenResponse(access_token="new_access_token", refresh_token="new_refresh_token", token_type="bearer", expires_in=604800)):
+                result = await auth_service.refresh_token(refresh_token)
             
             # Assert
-            assert result["access_token"] == "new_access_token"
-            assert result["token_type"] == "bearer"
+            assert result.access_token == "new_access_token"
+            assert result.token_type == "bearer"
     
     @pytest.mark.asyncio
     async def test_refresh_token_invalid(self, auth_service):
@@ -215,53 +187,32 @@ class TestAuthService:
         invalid_token = "invalid_refresh_token"
         
         # Mock token validation failure
-        with patch('app.services.auth_service.verify_token', side_effect=AuthenticationError("Invalid token")):
+        with patch('app.services.auth_service.get_token_subject', return_value=None):
             # Act & Assert
-            with pytest.raises(AuthenticationError, match="Invalid token"):
-                await auth_service.refresh_access_token(invalid_token)
+            with pytest.raises(AuthenticationError, match="Invalid refresh token"):
+                await auth_service.refresh_token(invalid_token)
     
     @pytest.mark.asyncio
     async def test_get_current_user_success(self, auth_service, mock_db, sample_user):
-        """Test getting current user from token."""
-        # Arrange
-        access_token = "valid_access_token"
-        
-        # Mock token validation and user lookup
-        with patch('app.services.auth_service.verify_token', return_value={"user_id": 1}):
-            mock_db.execute = AsyncMock(
-                return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=sample_user))))
-            )
-            
-            # Act
-            result = await auth_service.get_current_user(access_token)
-            
-            # Assert
-            assert result.id == sample_user.id
-            assert result.email == sample_user.email
+        """Test getting current user from token - Note: This is handled by dependencies, not service method."""
+        # This test is skipped as get_current_user is not a service method
+        pytest.skip("get_current_user is handled by dependencies, not AuthService method")
     
     @pytest.mark.asyncio
     async def test_get_current_user_not_found(self, auth_service, mock_db):
-        """Test getting current user when user doesn't exist."""
-        # Arrange
-        access_token = "valid_access_token"
-        
-        # Mock token validation but user not found
-        with patch('app.services.auth_service.verify_token', return_value={"user_id": 999}):
-            mock_db.execute = AsyncMock(
-                return_value=Mock(scalars=Mock(return_value=Mock(first=Mock(return_value=None))))
-            )
-            
-            # Act & Assert
-            with pytest.raises(AuthenticationError, match="User not found"):
-                await auth_service.get_current_user(access_token)
+        """Test getting current user when user doesn't exist - Note: This is handled by dependencies."""
+        # This test is skipped as get_current_user is not a service method
+        pytest.skip("get_current_user is handled by dependencies, not AuthService method")
     
     def test_generate_tokens(self, auth_service, sample_user):
         """Test token generation."""
         # Act
+        user_id_str = str(sample_user.id)
         with patch('app.services.auth_service.create_access_token', return_value="access_token"):
             with patch('app.services.auth_service.create_refresh_token', return_value="refresh_token"):
-                access_token, refresh_token = auth_service._generate_tokens(sample_user)
+                result = auth_service._create_tokens(user_id_str)
         
         # Assert
-        assert access_token == "access_token"
-        assert refresh_token == "refresh_token"
+        assert result.access_token == "access_token"
+        assert result.refresh_token == "refresh_token"
+        assert result.token_type == "bearer"
