@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/errors/exceptions.dart';
+import '../../../core/utils/logger.dart';
 
 /// Manages Hive local storage initialization and box access
 class HiveStorage {
@@ -8,15 +9,21 @@ class HiveStorage {
 
   /// Initialize Hive and register adapters
   static Future<void> initialize() async {
-    if (_initialized) return;
+    if (_initialized) {
+      AppLogger.debug('[HiveStorage] Already initialized, skipping...');
+      return;
+    }
 
     try {
+      AppLogger.debug('[HiveStorage] Initializing Hive Flutter...');
       await Hive.initFlutter();
 
       // Register type adapters here when models are created
       // Example: Hive.registerAdapter(UserModelAdapter());
+      AppLogger.debug('[HiveStorage] Registering type adapters...');
 
       // Open required boxes
+      AppLogger.debug('[HiveStorage] Opening storage boxes...');
       await Future.wait([
         Hive.openBox(StorageKeys.authBox),
         Hive.openBox(StorageKeys.cacheBox),
@@ -25,7 +32,11 @@ class HiveStorage {
       ]);
 
       _initialized = true;
-    } catch (e) {
+      AppLogger.info(
+          '[HiveStorage] Successfully initialized with boxes: ${StorageKeys.authBox}, ${StorageKeys.cacheBox}, ${StorageKeys.gameBox}, ${StorageKeys.settingsBox}');
+    } catch (e, stackTrace) {
+      AppLogger.error('[HiveStorage] Failed to initialize',
+          error: e, stackTrace: stackTrace);
       throw StorageException(
         message: 'Failed to initialize Hive storage: ${e.toString()}',
         details: e,
