@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from starlette.middleware.sessions import SessionMiddleware
 import time
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -35,12 +35,79 @@ from app.core.exceptions import (
 configure_logging()
 logger = get_logger(__name__)
 
-# Initialize rate limiter with Redis backend
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["100/minute"],
-    storage_uri=settings.redis_url,
-)
+
+# Custom rate limit exception handler that handles connection errors
+async def custom_rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    Handle rate limit errors, including connection errors from Redis.
+    """
+    if isinstance(exc, RateLimitExceeded):
+        error_detail = getattr(exc, 'detail', str(exc))
+        logger.warning(
+            "rate_limit_exceeded",
+            path=str(request.url.path),
+            client=request.client.host if request.client else "unknown",
+            detail=error_detail
+        )
+        return JSONResponse(
+            status_code=429,
+            content={"error": f"Rate limit exceeded: {error_detail}"},
+            headers={"Retry-After": "60"}
+        )
+    else:
+        # Handle connection errors or other exceptions from rate limiter
+        error_message = str(exc)
+        logger.error(
+            "rate_limiter_error",
+            error_type=type(exc).__name__,
+            error=error_message,
+            path=str(request.url.path),
+        )
+        # Return 503 to indicate service unavailability but allow request
+        return JSONResponse(
+            status_code=503,
+            content={
+                "detail": "Rate limiter temporarily unavailable",
+                "error_type": type(exc).__name__,
+                "error": error_message if settings.debug else "Service temporarily unavailable"
+            }
+        )
+
+
+# Initialize rate limiter with Redis backend (fallback to memory if Redis unavailable)
+use_rate_limiting = True
+try:
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=["100/minute"],
+        storage_uri=settings.redis_url,
+    )
+    # Test Redis connection
+    from redis import from_url
+    try:
+        redis_test = from_url(settings.redis_url)
+        redis_test.ping()
+        redis_test.close()
+        logger.info("rate_limiter_initialized", storage="redis")
+    except Exception as redis_err:
+        logger.warning("redis_test_failed", error=str(redis_err))
+        # Fallback to memory storage
+        limiter = Limiter(
+            key_func=get_remote_address,
+            default_limits=["100/minute"],
+            storage_uri="memory://",
+        )
+        logger.info("rate_limiter_initialized", storage="memory")
+except Exception as e:
+    logger.error("rate_limiter_initialization_failed", error=str(e))
+    use_rate_limiting = False
+    # Create a dummy limiter that won't be used
+    limiter = Limiter(
+        key_func=get_remote_address,
+        default_limits=["100/minute"],
+        storage_uri="memory://",
+    )
+    logger.warning("rate_limiting_disabled", reason="initialization_failed")
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
@@ -96,12 +163,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Attach rate limiter to app state
+# Attach rate limiter to app state and configure custom exception handler
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Add rate limiting middleware
-app.add_middleware(SlowAPIMiddleware)
+# Override the default slowapi exception handler to handle ConnectionError
+limiter._application_exc_handler = custom_rate_limit_handler
+
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_handler)
+app.add_exception_handler(ConnectionError, custom_rate_limit_handler)
+
+# Add rate limiting middleware only if initialization succeeded
+if use_rate_limiting:
+    app.add_middleware(SlowAPIMiddleware)
+    logger.info("rate_limiting_middleware_enabled")
+else:
+    logger.warning("rate_limiting_middleware_disabled")
 
 # Configure CORS
 app.add_middleware(
@@ -237,9 +313,14 @@ async def storage_exception_handler(request: Request, exc: StorageError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Handle unexpected errors"""
+    # Get error details safely
+    error_message = str(exc)
+    error_type = type(exc).__name__
+    
     logger.error(
         "unexpected_error",
-        error=str(exc),
+        error_type=error_type,
+        error=error_message,
         path=str(request.url.path),
         method=request.method,
         exc_info=exc,
@@ -250,7 +331,8 @@ async def global_exception_handler(request: Request, exc: Exception):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "detail": "Internal server error",
-                "error": str(exc)
+                "error_type": error_type,
+                "error": error_message
             }
         )
     
