@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../core/constants/app_config.dart';
+import '../core/utils/logger.dart';
 import '../data/datasources/local/hive_storage.dart';
 import '../data/datasources/local/auth_local_datasource.dart';
 import '../data/datasources/remote/auth_remote_datasource.dart';
@@ -138,8 +139,8 @@ Dio _createDioClient() {
     responseBody: true,
     error: true,
     logPrint: (obj) {
-      // Use logger package for better logging
-      print('[DIO] $obj');
+      // Use AppLogger for better logging
+      AppLogger.debug(obj.toString());
     },
   ));
 

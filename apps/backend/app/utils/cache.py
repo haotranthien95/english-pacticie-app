@@ -25,15 +25,24 @@ async def get_redis() -> Redis:
     
     Returns:
         Redis client for caching operations
+        
+    Raises:
+        ConnectionError: If Redis is not available
     """
     global _redis_client
     
     if _redis_client is None:
-        _redis_client = redis.from_url(
-            settings.redis_url,
-            encoding="utf-8",
-            decode_responses=True,
-        )
+        try:
+            _redis_client = redis.from_url(
+                settings.redis_url,
+                encoding="utf-8",
+                decode_responses=True,
+            )
+            # Test connection
+            await _redis_client.ping()
+        except Exception as e:
+            _redis_client = None
+            raise ConnectionError(f"Redis connection failed: {str(e)}") from e
     
     return _redis_client
 

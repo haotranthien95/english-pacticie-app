@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/logger.dart';
 import '../../../domain/usecases/auth/login_usecase.dart';
 import '../../../domain/usecases/auth/register_usecase.dart';
 import '../../../domain/usecases/auth/social_login_usecase.dart';
@@ -36,13 +37,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckRequested event,
     Emitter<AuthState> emit,
   ) async {
+    AppLogger.info('[AuthBloc] Checking authentication status...');
     emit(const AuthLoading());
 
     final result = await getCurrentUserUseCase();
 
     result.fold(
-      (failure) => emit(const AuthUnauthenticated()),
-      (user) => emit(AuthAuthenticated(user: user)),
+      (failure) {
+        AppLogger.info('[AuthBloc] No authenticated user found');
+        emit(const AuthUnauthenticated());
+      },
+      (user) {
+        AppLogger.info('[AuthBloc] User authenticated: ${user.email}');
+        emit(AuthAuthenticated(user: user));
+      },
     );
   }
 
@@ -51,6 +59,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LoginRequested event,
     Emitter<AuthState> emit,
   ) async {
+    AppLogger.info('[AuthBloc] Login attempt for: ${event.email}');
     emit(const AuthLoading());
 
     final result = await loginUseCase(
@@ -59,8 +68,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
 
     result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (user) => emit(AuthAuthenticated(user: user)),
+      (failure) {
+        AppLogger.error('[AuthBloc] Login failed: ${failure.message}');
+        emit(AuthError(message: failure.message));
+      },
+      (user) {
+        AppLogger.info('[AuthBloc] Login successful: ${user.email}');
+        emit(AuthAuthenticated(user: user));
+      },
     );
   }
 
@@ -69,6 +84,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
+    AppLogger.info('[AuthBloc] Registration attempt for: ${event.email}');
     emit(const AuthLoading());
 
     final result = await registerUseCase(
@@ -79,8 +95,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
 
     result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (user) => emit(AuthAuthenticated(user: user)),
+      (failure) {
+        AppLogger.error('[AuthBloc] Registration failed: ${failure.message}');
+        emit(AuthError(message: failure.message));
+      },
+      (user) {
+        AppLogger.info('[AuthBloc] Registration successful: ${user.email}');
+        emit(AuthAuthenticated(user: user));
+      },
     );
   }
 
@@ -89,13 +111,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SocialLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
+    AppLogger.info('[AuthBloc] Social login attempt with: ${event.provider}');
     emit(const AuthLoading());
 
     final result = await socialLoginUseCase(provider: event.provider);
 
     result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (user) => emit(AuthAuthenticated(user: user)),
+      (failure) {
+        AppLogger.error('[AuthBloc] Social login failed: ${failure.message}');
+        emit(AuthError(message: failure.message));
+      },
+      (user) {
+        AppLogger.info('[AuthBloc] Social login successful: ${user.email}');
+        emit(AuthAuthenticated(user: user));
+      },
     );
   }
 
@@ -104,13 +133,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    AppLogger.info('[AuthBloc] Logout requested');
     emit(const AuthLoading());
 
     final result = await logoutUseCase();
 
     result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (_) => emit(const AuthUnauthenticated()),
+      (failure) {
+        AppLogger.error('[AuthBloc] Logout failed: ${failure.message}');
+        emit(AuthError(message: failure.message));
+      },
+      (_) {
+        AppLogger.info('[AuthBloc] Logout successful');
+        emit(const AuthUnauthenticated());
+      },
     );
   }
 }

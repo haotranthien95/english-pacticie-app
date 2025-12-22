@@ -106,6 +106,12 @@ alembic upgrade head
 
 # Start development server
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+source .venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload 2>&1 &
+
+pkill -f "uvicorn app.main:app" 2>/dev/null; sleep 1; echo "Killed uvicorn processes"
 ```
 
 ## 📖 API Documentation
