@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:english_learning_app/core/constants/enums.dart';
 import 'package:english_learning_app/core/errors/exceptions.dart';
 import 'package:english_learning_app/core/errors/failures.dart';
 import 'package:english_learning_app/data/datasources/local/auth_local_datasource.dart';
@@ -36,8 +37,8 @@ void main() {
       email: 'test@example.com',
       username: 'testuser',
       displayName: 'Test User',
-      avatarUrl: 'https://example.com/avatar.jpg',
-      createdAt: DateTime.now(),
+      authProvider: AuthProvider.email,
+      createdAt: DateTime(2024, 1, 1),
     );
 
     test('should return user profile on success', () async {
@@ -103,14 +104,12 @@ void main() {
       );
     });
 
-    test(
-        'should clear token and return UnauthorizedFailure on UnauthorizedException',
-        () async {
+    test('should clear token and return UnauthorizedFailure on UnauthorizedException', () async {
       // Arrange
       when(mockRemoteDataSource.getProfile()).thenThrow(
         UnauthorizedException(message: 'Unauthorized'),
       );
-      when(mockLocalDataSource.clearToken()).thenAnswer((_) async => {});
+      when(mockLocalDataSource.deleteToken()).thenAnswer((_) async => {});
 
       // Act
       final result = await repository.getProfile();
@@ -124,7 +123,7 @@ void main() {
         },
         (_) => fail('Should return failure'),
       );
-      verify(mockLocalDataSource.clearToken()).called(1);
+      verify(mockLocalDataSource.deleteToken()).called(1);
     });
 
     test('should return ServerFailure on unexpected error', () async {
@@ -154,15 +153,14 @@ void main() {
       email: 'test@example.com',
       username: 'testuser',
       displayName: 'Updated Name',
-      avatarUrl: 'https://example.com/new-avatar.jpg',
-      createdAt: DateTime.now(),
+      authProvider: AuthProvider.email,
+      createdAt: DateTime(2024, 1, 1),
     );
 
     test('should update profile with name only', () async {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenAnswer((_) async => mockUserModel);
 
       // Act
@@ -176,20 +174,18 @@ void main() {
       );
       verify(mockRemoteDataSource.updateProfile(
         name: 'Updated Name',
-        avatarUrl: null,
       )).called(1);
     });
 
-    test('should update profile with avatarUrl only', () async {
+    test('should update profile with name only', () async {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenAnswer((_) async => mockUserModel);
 
       // Act
       final result = await repository.updateProfile(
-        avatarUrl: 'https://example.com/new-avatar.jpg',
+        name: 'Updated Name',
       );
 
       // Assert
@@ -197,34 +193,30 @@ void main() {
       result.fold(
         (_) => fail('Should return user'),
         (user) => expect(
-          user.avatarUrl,
-          equals('https://example.com/new-avatar.jpg'),
+          user.displayName,
+          equals('Updated Name'),
         ),
       );
       verify(mockRemoteDataSource.updateProfile(
-        name: null,
-        avatarUrl: 'https://example.com/new-avatar.jpg',
+        name: 'Updated Name',
       )).called(1);
     });
 
-    test('should update profile with both name and avatarUrl', () async {
+    test('should update profile successfully', () async {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenAnswer((_) async => mockUserModel);
 
       // Act
       final result = await repository.updateProfile(
         name: 'Updated Name',
-        avatarUrl: 'https://example.com/new-avatar.jpg',
       );
 
       // Assert
       expect(result.isRight(), true);
       verify(mockRemoteDataSource.updateProfile(
         name: 'Updated Name',
-        avatarUrl: 'https://example.com/new-avatar.jpg',
       )).called(1);
     });
 
@@ -232,7 +224,6 @@ void main() {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenThrow(ValidationException(message: 'Name is required'));
 
       // Act
@@ -253,7 +244,6 @@ void main() {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenThrow(ServerException(message: 'Server error'));
 
       // Act
@@ -274,7 +264,6 @@ void main() {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenThrow(NetworkException(message: 'No internet connection'));
 
       // Act
@@ -291,15 +280,12 @@ void main() {
       );
     });
 
-    test(
-        'should clear token and return UnauthorizedFailure on UnauthorizedException',
-        () async {
+    test('should clear token and return UnauthorizedFailure on UnauthorizedException', () async {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenThrow(UnauthorizedException(message: 'Unauthorized'));
-      when(mockLocalDataSource.clearToken()).thenAnswer((_) async => {});
+      when(mockLocalDataSource.deleteToken()).thenAnswer((_) async => {});
 
       // Act
       final result = await repository.updateProfile(name: 'Updated Name');
@@ -313,14 +299,13 @@ void main() {
         },
         (_) => fail('Should return failure'),
       );
-      verify(mockLocalDataSource.clearToken()).called(1);
+      verify(mockLocalDataSource.deleteToken()).called(1);
     });
 
     test('should return ServerFailure on unexpected error', () async {
       // Arrange
       when(mockRemoteDataSource.updateProfile(
         name: anyNamed('name'),
-        avatarUrl: anyNamed('avatarUrl'),
       )).thenThrow(Exception('Unexpected error'));
 
       // Act
@@ -342,7 +327,7 @@ void main() {
     test('should delete account and clear token on success', () async {
       // Arrange
       when(mockRemoteDataSource.deleteAccount()).thenAnswer((_) async => {});
-      when(mockLocalDataSource.clearToken()).thenAnswer((_) async => {});
+      when(mockLocalDataSource.deleteToken()).thenAnswer((_) async => {});
 
       // Act
       final result = await repository.deleteAccount();
@@ -350,13 +335,13 @@ void main() {
       // Assert
       expect(result.isRight(), true);
       verify(mockRemoteDataSource.deleteAccount()).called(1);
-      verify(mockLocalDataSource.clearToken()).called(1);
+      verify(mockLocalDataSource.deleteToken()).called(1);
     });
 
     test('should clear token after successful deletion', () async {
       // Arrange
       when(mockRemoteDataSource.deleteAccount()).thenAnswer((_) async => {});
-      when(mockLocalDataSource.clearToken()).thenAnswer((_) async => {});
+      when(mockLocalDataSource.deleteToken()).thenAnswer((_) async => {});
 
       // Act
       await repository.deleteAccount();
@@ -364,7 +349,7 @@ void main() {
       // Assert
       verifyInOrder([
         mockRemoteDataSource.deleteAccount(),
-        mockLocalDataSource.clearToken(),
+        mockLocalDataSource.deleteToken(),
       ]);
     });
 
@@ -386,7 +371,7 @@ void main() {
         },
         (_) => fail('Should return failure'),
       );
-      verifyNever(mockLocalDataSource.clearToken());
+      verifyNever(mockLocalDataSource.deleteToken());
     });
 
     test('should return NetworkFailure on NetworkException', () async {
@@ -407,7 +392,7 @@ void main() {
         },
         (_) => fail('Should return failure'),
       );
-      verifyNever(mockLocalDataSource.clearToken());
+      verifyNever(mockLocalDataSource.deleteToken());
     });
 
     test('should clear token even on UnauthorizedException', () async {
@@ -415,7 +400,7 @@ void main() {
       when(mockRemoteDataSource.deleteAccount()).thenThrow(
         UnauthorizedException(message: 'Unauthorized'),
       );
-      when(mockLocalDataSource.clearToken()).thenAnswer((_) async => {});
+      when(mockLocalDataSource.deleteToken()).thenAnswer((_) async => {});
 
       // Act
       final result = await repository.deleteAccount();
@@ -429,7 +414,7 @@ void main() {
         },
         (_) => fail('Should return failure'),
       );
-      verify(mockLocalDataSource.clearToken()).called(1);
+      verify(mockLocalDataSource.deleteToken()).called(1);
     });
 
     test('should return ServerFailure on unexpected error', () async {
@@ -450,7 +435,7 @@ void main() {
         },
         (_) => fail('Should return failure'),
       );
-      verifyNever(mockLocalDataSource.clearToken());
+      verifyNever(mockLocalDataSource.deleteToken());
     });
   });
 }

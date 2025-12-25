@@ -12,6 +12,7 @@ import 'package:english_learning_app/data/datasources/local/audio_player_service
 import 'package:english_learning_app/data/datasources/local/audio_recorder_service.dart';
 import 'package:english_learning_app/data/datasources/remote/speech_remote_datasource.dart';
 import 'package:english_learning_app/domain/entities/game_result.dart';
+import 'package:english_learning_app/domain/entities/game_session.dart';
 import 'package:english_learning_app/domain/entities/speech.dart';
 import 'package:english_learning_app/domain/usecases/game/create_session_usecase.dart';
 import 'package:english_learning_app/domain/usecases/game/get_random_speeches_usecase.dart';
@@ -40,7 +41,7 @@ void main() {
   // Test data
   const tUserId = 'user123';
   const tSpeechLevel = SpeechLevel.beginner;
-  const tSpeechType = SpeechType.conversation;
+  const tSpeechType = SpeechType.word;
   const tGameMode = GameMode.listenOnly;
   final tTagIds = ['tag1', 'tag2'];
   const tCount = 10;
@@ -48,31 +49,28 @@ void main() {
   final tSpeeches = [
     Speech(
       id: 'speech1',
-      content: 'Hello, how are you?',
-      translation: 'Xin chào, bạn khỏe không?',
+      text: 'Hello, how are you?',
       audioUrl: 'https://example.com/audio1.mp3',
       level: SpeechLevel.beginner,
-      type: SpeechType.conversation,
+      type: SpeechType.word,
       tagIds: ['tag1'],
       createdAt: DateTime(2024, 1, 1),
     ),
     Speech(
       id: 'speech2',
-      content: 'Good morning!',
-      translation: 'Chào buổi sáng!',
+      text: 'Good morning!',
       audioUrl: 'https://example.com/audio2.mp3',
       level: SpeechLevel.beginner,
-      type: SpeechType.conversation,
+      type: SpeechType.word,
       tagIds: ['tag2'],
       createdAt: DateTime(2024, 1, 2),
     ),
     Speech(
       id: 'speech3',
-      content: 'Thank you very much.',
-      translation: 'Cảm ơn rất nhiều.',
+      text: 'Thank you very much.',
       audioUrl: 'https://example.com/audio3.mp3',
       level: SpeechLevel.beginner,
-      type: SpeechType.conversation,
+      type: SpeechType.word,
       tagIds: ['tag1', 'tag2'],
       createdAt: DateTime(2024, 1, 3),
     ),
@@ -118,10 +116,13 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits [GameLoading, GameReady] when speeches are fetched successfully',
         build: () {
-          when(mockGetRandomSpeechesUseCase(any))
+          when(mockGetRandomSpeechesUseCase.call(
+                  level: anyNamed('level'),
+                  type: anyNamed('type'),
+                  tagIds: anyNamed('tagIds'),
+                  count: anyNamed('count')))
               .thenAnswer((_) async => Right(tSpeeches));
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         act: (bloc) => bloc.add(
@@ -140,21 +141,38 @@ void main() {
             return state.speeches.length == 3 &&
                 state.currentIndex == 0 &&
                 state.results.isEmpty &&
-                state.mode == tGameMode;
+                state.mode == tGameMode &&
+                state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.speeches.length == 3 &&
+                state.currentIndex == 0 &&
+                state.results.isEmpty &&
+                state.mode == tGameMode &&
+                state.isAudioPlaying == true;
           }),
         ],
         verify: (_) {
-          verify(mockGetRandomSpeechesUseCase(any)).called(1);
+          verify(mockGetRandomSpeechesUseCase.call(
+                  level: anyNamed('level'),
+                  type: anyNamed('type'),
+                  tagIds: anyNamed('tagIds'),
+                  count: anyNamed('count')))
+              .called(1);
         },
       );
 
       blocTest<GameBloc, GameState>(
         'emits [GameLoading, GameReady] with filtered speeches by tags',
         build: () {
-          when(mockGetRandomSpeechesUseCase(any))
+          when(mockGetRandomSpeechesUseCase.call(
+                  level: anyNamed('level'),
+                  type: anyNamed('type'),
+                  tagIds: anyNamed('tagIds'),
+                  count: anyNamed('count')))
               .thenAnswer((_) async => Right(tSpeeches));
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         act: (bloc) => bloc.add(
@@ -169,21 +187,27 @@ void main() {
         expect: () => [
           const GameLoading(),
           isA<GameReady>(),
+          isA<GameReady>(),
         ],
         verify: (_) {
-          final captured = verify(
-            mockGetRandomSpeechesUseCase(captureAny),
-          ).captured;
-          expect(captured.length, 1);
-          final params = captured[0] as GetRandomSpeechesParams;
-          expect(params.tagIds, equals(tTagIds));
+          verify(
+            mockGetRandomSpeechesUseCase.call(
+                level: anyNamed('level'),
+                type: anyNamed('type'),
+                tagIds: anyNamed('tagIds'),
+                count: anyNamed('count')),
+          ).called(1);
         },
       );
 
       blocTest<GameBloc, GameState>(
         'emits [GameLoading, GameError] when fetching speeches fails',
         build: () {
-          when(mockGetRandomSpeechesUseCase(any))
+          when(mockGetRandomSpeechesUseCase.call(
+                  level: anyNamed('level'),
+                  type: anyNamed('type'),
+                  tagIds: anyNamed('tagIds'),
+                  count: anyNamed('count')))
               .thenAnswer((_) async => const Left(tNetworkFailure));
           return gameBloc;
         },
@@ -205,7 +229,11 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits [GameLoading, GameError] when server error occurs',
         build: () {
-          when(mockGetRandomSpeechesUseCase(any))
+          when(mockGetRandomSpeechesUseCase.call(
+                  level: anyNamed('level'),
+                  type: anyNamed('type'),
+                  tagIds: anyNamed('tagIds'),
+                  count: anyNamed('count')))
               .thenAnswer((_) async => const Left(tServerFailure));
           return gameBloc;
         },
@@ -237,8 +265,7 @@ void main() {
       blocTest<GameBloc, GameState>(
         'moves to next speech when answer is correct',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tInitialState,
@@ -249,7 +276,16 @@ void main() {
             return state.currentIndex == 1 &&
                 state.results.length == 1 &&
                 state.results[0].correct == true &&
-                state.streakCount == 1;
+                state.streakCount == 1 &&
+                state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.currentIndex == 1 &&
+                state.results.length == 1 &&
+                state.results[0].correct == true &&
+                state.streakCount == 1 &&
+                state.isAudioPlaying == true;
           }),
         ],
       );
@@ -257,8 +293,7 @@ void main() {
       blocTest<GameBloc, GameState>(
         'increases streak count on consecutive correct answers',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tInitialState.copyWith(
@@ -267,7 +302,7 @@ void main() {
             GameResult(
               speechId: 'speech1',
               correct: true,
-              timeSpent: const Duration(seconds: 5),
+              timestamp: DateTime(2024, 1, 1),
             ),
           ],
           streakCount: 1,
@@ -278,7 +313,15 @@ void main() {
             if (state is! GameReady) return false;
             return state.currentIndex == 2 &&
                 state.results.length == 2 &&
-                state.streakCount == 2;
+                state.streakCount == 2 &&
+                state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.currentIndex == 2 &&
+                state.results.length == 2 &&
+                state.streakCount == 2 &&
+                state.isAudioPlaying == true;
           }),
         ],
       );
@@ -296,8 +339,7 @@ void main() {
       blocTest<GameBloc, GameState>(
         'moves to next speech when answer is incorrect',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tInitialState,
@@ -308,7 +350,16 @@ void main() {
             return state.currentIndex == 1 &&
                 state.results.length == 1 &&
                 state.results[0].correct == false &&
-                state.streakCount == 0; // Reset streak on incorrect answer
+                state.streakCount == 0 && // Reset streak on incorrect answer
+                state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.currentIndex == 1 &&
+                state.results.length == 1 &&
+                state.results[0].correct == false &&
+                state.streakCount == 0 && // Reset streak on incorrect answer
+                state.isAudioPlaying == true;
           }),
         ],
       );
@@ -316,8 +367,7 @@ void main() {
       blocTest<GameBloc, GameState>(
         'resets streak count on incorrect answer',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tInitialState,
@@ -325,7 +375,11 @@ void main() {
         expect: () => [
           predicate<GameState>((state) {
             if (state is! GameReady) return false;
-            return state.streakCount == 0;
+            return state.streakCount == 0 && state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.streakCount == 0 && state.isAudioPlaying == true;
           }),
         ],
       );
@@ -343,23 +397,20 @@ void main() {
       blocTest<GameBloc, GameState>(
         'replays current speech audio',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tGameState,
         act: (bloc) => bloc.add(const AudioReplayRequested()),
         verify: (_) {
-          verify(mockAudioPlayerService.playFromUrl(tSpeeches[0].audioUrl))
-              .called(1);
+          verify(mockAudioPlayerService.play(tSpeeches[0].audioUrl)).called(1);
         },
       );
 
       blocTest<GameBloc, GameState>(
         'updates audio playing state when replay is requested',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tGameState,
@@ -381,7 +432,7 @@ void main() {
           GameResult(
             speechId: 'speech1',
             correct: true,
-            timeSpent: const Duration(seconds: 5),
+            timestamp: DateTime(2024, 1, 1),
           ),
         ],
         streakCount: 1,
@@ -392,12 +443,11 @@ void main() {
         'emits GamePaused state',
         build: () => gameBloc,
         seed: () => tGameState,
-        act: (bloc) => bloc.add(const GamePaused()),
+        act: (bloc) => bloc.add(const GamePauseRequested()),
         expect: () => [
           predicate<GameState>((state) {
             if (state is! GamePaused) return false;
-            return state.previousState.currentIndex == 1 &&
-                state.previousState.results.length == 1;
+            return state.previousState.currentIndex == 1 && state.previousState.results.length == 1;
           }),
         ],
       );
@@ -411,7 +461,7 @@ void main() {
           GameResult(
             speechId: 'speech1',
             correct: true,
-            timeSpent: const Duration(seconds: 5),
+            timestamp: DateTime(2024, 1, 1),
           ),
         ],
         streakCount: 1,
@@ -444,8 +494,8 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits GameRecording state when recording starts',
         build: () {
-          when(mockAudioRecorderService.startRecording())
-              .thenAnswer((_) async => {});
+          when(mockAudioRecorderService.hasPermission()).thenAnswer((_) async => true);
+          when(mockAudioRecorderService.startRecording()).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => tGameState,
@@ -476,8 +526,16 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits GameTranscribing when recording stops',
         build: () {
-          when(mockAudioRecorderService.stopRecording())
-              .thenAnswer((_) async => tRecordedBytes);
+          when(mockAudioRecorderService.stopRecording()).thenAnswer((_) async => tRecordedBytes);
+          when(mockSpeechRemoteDataSource.scorePronunciation(
+            audioBytes: anyNamed('audioBytes'),
+            referenceText: anyNamed('referenceText'),
+            language: anyNamed('language'),
+          )).thenAnswer((_) async => SpeechScoreResponse(
+                transcribedText: 'Hello, how are you?',
+                pronunciationScore: 85.5,
+                wordScores: {},
+              ));
           return gameBloc;
         },
         seed: () => GameRecording(tGameState),
@@ -485,6 +543,9 @@ void main() {
         expect: () => [
           predicate<GameState>((state) {
             return state is GameTranscribing;
+          }),
+          predicate<GameState>((state) {
+            return state is GameScoreReady;
           }),
         ],
         verify: (_) {
@@ -495,8 +556,7 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits GameError when recording fails',
         build: () {
-          when(mockAudioRecorderService.stopRecording())
-              .thenThrow(Exception('Recording failed'));
+          when(mockAudioRecorderService.stopRecording()).thenThrow(Exception('Recording failed'));
           return gameBloc;
         },
         seed: () => GameRecording(tGameState),
@@ -522,8 +582,7 @@ void main() {
       blocTest<GameBloc, GameState>(
         'returns to previous GameReady state when recording is cancelled',
         build: () {
-          when(mockAudioRecorderService.cancelRecording())
-              .thenAnswer((_) async => {});
+          when(mockAudioRecorderService.cancelRecording()).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => GameRecording(tGameState),
@@ -550,19 +609,20 @@ void main() {
       );
 
       final tScoreResponse = SpeechScoreResponse(
-        speechId: 'speech1',
         transcribedText: 'Hello, how are you?',
         pronunciationScore: 85.5,
-        accuracyScore: 90.0,
-        fluencyScore: 80.0,
-        completenessScore: 85.0,
+        wordScores: {
+          'Hello': 90.0,
+          'how': 85.0,
+          'are': 80.0,
+          'you': 88.0,
+        },
       );
 
       blocTest<GameBloc, GameState>(
         'moves to next speech after score is acknowledged',
         build: () {
-          when(mockAudioPlayerService.playFromUrl(any))
-              .thenAnswer((_) async => {});
+          when(mockAudioPlayerService.play(any)).thenAnswer((_) async => {});
           return gameBloc;
         },
         seed: () => GameScoreReady(
@@ -575,7 +635,15 @@ void main() {
             if (state is! GameReady) return false;
             return state.currentIndex == 1 &&
                 state.results.length == 1 &&
-                state.results[0].pronunciationScore == 85.5;
+                state.results[0].pronunciationScore == 85.5 &&
+                state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.currentIndex == 1 &&
+                state.results.length == 1 &&
+                state.results[0].pronunciationScore == 85.5 &&
+                state.isAudioPlaying == true;
           }),
         ],
       );
@@ -589,7 +657,7 @@ void main() {
           GameResult(
             speechId: 'speech1',
             correct: true,
-            timeSpent: const Duration(seconds: 5),
+            timestamp: DateTime(2024, 1, 1),
           ),
         ],
         streakCount: 1,
@@ -599,8 +667,22 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits GameCompleted when quit is requested',
         build: () {
-          when(mockCreateSessionUseCase(any))
-              .thenAnswer((_) async => const Right(unit));
+          when(mockCreateSessionUseCase(any)).thenAnswer((_) async => Right(GameSession(
+                id: 'session1',
+                userId: tUserId,
+                mode: tGameMode,
+                level: tSpeechLevel,
+                type: tSpeechType,
+                tagIds: const [],
+                results: const [],
+                totalSpeeches: 1,
+                correctCount: 1,
+                incorrectCount: 0,
+                streakCount: 1,
+                startedAt: DateTime(2024, 1, 1),
+                completedAt: DateTime(2024, 1, 1, 0, 5),
+                syncStatus: SyncStatus.pending,
+              )));
           return gameBloc;
         },
         seed: () => tGameState,
@@ -620,17 +702,17 @@ void main() {
           GameResult(
             speechId: 'speech1',
             correct: true,
-            timeSpent: const Duration(seconds: 5),
+            timestamp: DateTime(2024, 1, 1),
           ),
           GameResult(
             speechId: 'speech2',
             correct: true,
-            timeSpent: const Duration(seconds: 6),
+            timestamp: DateTime(2024, 1, 1, 0, 1),
           ),
           GameResult(
             speechId: 'speech3',
             correct: false,
-            timeSpent: const Duration(seconds: 4),
+            timestamp: DateTime(2024, 1, 1, 0, 2),
           ),
         ],
         streakCount: 0,
@@ -640,8 +722,22 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits [GameSaving, GameCompleted] when game is saved successfully',
         build: () {
-          when(mockCreateSessionUseCase(any))
-              .thenAnswer((_) async => const Right(unit));
+          when(mockCreateSessionUseCase(any)).thenAnswer((_) async => Right(GameSession(
+                id: 'session1',
+                userId: tUserId,
+                mode: tGameMode,
+                level: tSpeechLevel,
+                type: tSpeechType,
+                tagIds: const [],
+                results: const [],
+                totalSpeeches: 3,
+                correctCount: 2,
+                incorrectCount: 1,
+                streakCount: 2,
+                startedAt: DateTime(2024, 1, 1),
+                completedAt: DateTime(2024, 1, 1, 0, 10),
+                syncStatus: SyncStatus.pending,
+              )));
           return gameBloc;
         },
         seed: () => tCompletedGameState,
@@ -658,15 +754,14 @@ void main() {
       blocTest<GameBloc, GameState>(
         'emits [GameSaving, GameError] when saving fails',
         build: () {
-          when(mockCreateSessionUseCase(any))
-              .thenAnswer((_) async => const Left(tNetworkFailure));
+          when(mockCreateSessionUseCase(any)).thenAnswer((_) async => const Left(tNetworkFailure));
           return gameBloc;
         },
         seed: () => tCompletedGameState,
         act: (bloc) => bloc.add(const GameCompletionRequested()),
         expect: () => [
           predicate<GameState>((state) => state is GameSaving),
-          const GameError('No internet connection'),
+          const GameError('Failed to save session: No internet connection'),
         ],
       );
     });
@@ -699,7 +794,11 @@ void main() {
       blocTest<GameBloc, GameState>(
         'handles empty speeches list',
         build: () {
-          when(mockGetRandomSpeechesUseCase(any))
+          when(mockGetRandomSpeechesUseCase.call(
+                  level: anyNamed('level'),
+                  type: anyNamed('type'),
+                  tagIds: anyNamed('tagIds'),
+                  count: anyNamed('count')))
               .thenAnswer((_) async => const Right([]));
           return gameBloc;
         },
@@ -716,7 +815,11 @@ void main() {
           const GameLoading(),
           predicate<GameState>((state) {
             if (state is! GameReady) return false;
-            return state.speeches.isEmpty && state.isComplete;
+            return state.speeches.isEmpty && state.isComplete && state.isAudioPlaying == false;
+          }),
+          predicate<GameState>((state) {
+            if (state is! GameReady) return false;
+            return state.speeches.isEmpty && state.isComplete && state.isAudioPlaying == true;
           }),
         ],
       );

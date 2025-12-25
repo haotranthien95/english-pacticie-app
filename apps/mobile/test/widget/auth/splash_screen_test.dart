@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
+import 'package:english_learning_app/core/constants/enums.dart';
 import 'package:english_learning_app/domain/entities/user.dart';
 import 'package:english_learning_app/presentation/blocs/auth/auth_bloc.dart';
 import 'package:english_learning_app/presentation/blocs/auth/auth_event.dart';
@@ -72,8 +73,7 @@ void main() {
       verify(mockAuthBloc.add(const AuthCheckRequested())).called(1);
     });
 
-    testWidgets('should dispatch AuthCheckRequested after delay',
-        (tester) async {
+    testWidgets('should dispatch AuthCheckRequested after delay', (tester) async {
       // Arrange
       await tester.pumpWidget(createSplashScreen());
 
@@ -97,6 +97,7 @@ void main() {
         username: 'testuser',
         displayName: 'Test User',
         createdAt: DateTime.now(),
+        authProvider: AuthProvider.email,
       );
 
       when(mockAuthBloc.stream).thenAnswer(
@@ -114,8 +115,7 @@ void main() {
       expect(find.text('Logout'), findsOneWidget);
     });
 
-    testWidgets('should navigate to login when unauthenticated',
-        (tester) async {
+    testWidgets('should navigate to login when unauthenticated', (tester) async {
       // Arrange
       when(mockAuthBloc.stream).thenAnswer(
         (_) => Stream.value(const AuthUnauthenticated()),
@@ -131,8 +131,7 @@ void main() {
       expect(find.text('Login to continue'), findsOneWidget);
     });
 
-    testWidgets('should navigate to login when authentication check fails',
-        (tester) async {
+    testWidgets('should navigate to login when authentication check fails', (tester) async {
       // Arrange
       when(mockAuthBloc.stream).thenAnswer(
         (_) => Stream.value(const AuthError(message: 'Token expired')),
@@ -149,8 +148,7 @@ void main() {
       expect(find.text('Login to continue'), findsOneWidget);
     });
 
-    testWidgets('should show error message when authentication fails',
-        (tester) async {
+    testWidgets('should show error message when authentication fails', (tester) async {
       // Arrange
       when(mockAuthBloc.stream).thenAnswer(
         (_) => Stream.value(const AuthError(message: 'Network error')),
@@ -170,8 +168,7 @@ void main() {
   });
 
   group('SplashScreen - User Display', () {
-    testWidgets('should display username when displayName is null',
-        (tester) async {
+    testWidgets('should display username when displayName is null', (tester) async {
       // Arrange
       final user = User(
         id: 'user-1',
@@ -179,6 +176,7 @@ void main() {
         username: 'testuser',
         displayName: null,
         createdAt: DateTime.now(),
+        authProvider: AuthProvider.email,
       );
 
       when(mockAuthBloc.stream).thenAnswer(
@@ -202,6 +200,7 @@ void main() {
         username: 'testuser',
         displayName: 'Test User',
         createdAt: DateTime.now(),
+        authProvider: AuthProvider.email,
       );
 
       when(mockAuthBloc.stream).thenAnswer(
@@ -219,8 +218,7 @@ void main() {
   });
 
   group('SplashScreen - Logout Flow', () {
-    testWidgets(
-        'should dispatch LogoutRequested and navigate to login when logout tapped',
+    testWidgets('should dispatch LogoutRequested and navigate to login when logout tapped',
         (tester) async {
       // Arrange
       final user = User(
@@ -229,6 +227,7 @@ void main() {
         username: 'testuser',
         displayName: 'Test User',
         createdAt: DateTime.now(),
+        authProvider: AuthProvider.email,
       );
 
       when(mockAuthBloc.stream).thenAnswer(
@@ -257,6 +256,7 @@ void main() {
         username: 'testuser',
         displayName: 'Test User',
         createdAt: DateTime.now(),
+        authProvider: AuthProvider.email,
       );
 
       when(mockAuthBloc.stream).thenAnswer(
@@ -281,8 +281,7 @@ void main() {
       expect(find.text('Welcome, Test User!'), findsOneWidget);
     });
 
-    testWidgets('should not dispatch AuthCheckRequested if widget disposed',
-        (tester) async {
+    testWidgets('should not dispatch AuthCheckRequested if widget disposed', (tester) async {
       // Arrange
       await tester.pumpWidget(createSplashScreen());
 
@@ -313,8 +312,7 @@ void main() {
   });
 
   group('SplashScreen - Loading State', () {
-    testWidgets('should show loading indicator during authentication check',
-        (tester) async {
+    testWidgets('should show loading indicator during authentication check', (tester) async {
       // Arrange
       when(mockAuthBloc.state).thenReturn(const AuthLoading());
 
@@ -326,8 +324,7 @@ void main() {
       expect(find.text('Checking authentication...'), findsOneWidget);
     });
 
-    testWidgets('should keep showing splash screen during loading',
-        (tester) async {
+    testWidgets('should keep showing splash screen during loading', (tester) async {
       // Arrange
       when(mockAuthBloc.stream).thenAnswer(
         (_) => Stream.value(const AuthLoading()),

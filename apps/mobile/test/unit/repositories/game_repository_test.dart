@@ -40,8 +40,8 @@ void main() {
 
   group('GameRepository - getTags', () {
     final mockTags = [
-      const TagModel(id: '1', name: 'Technology', color: '#FF5722'),
-      const TagModel(id: '2', name: 'Business', color: '#2196F3'),
+      const TagModel(id: '1', name: 'Technology'),
+      const TagModel(id: '2', name: 'Business'),
     ];
 
     test('should return tags from remote when connected', () async {
@@ -98,8 +98,7 @@ void main() {
       verifyNever(mockRemoteDataSource.getTags());
     });
 
-    test('should return NetworkFailure when offline and no cached tags',
-        () async {
+    test('should return NetworkFailure when offline and no cached tags', () async {
       // Arrange
       when(mockConnectivity.checkConnectivity()).thenAnswer(
         (_) async => [ConnectivityResult.none],
@@ -139,8 +138,7 @@ void main() {
       verify(mockLocalDataSource.getCachedTags()).called(1);
     });
 
-    test('should return NetworkFailure on NetworkException with no cache',
-        () async {
+    test('should return NetworkFailure on NetworkException with no cache', () async {
       // Arrange
       when(mockConnectivity.checkConnectivity()).thenAnswer(
         (_) async => [ConnectivityResult.wifi],
@@ -226,21 +224,23 @@ void main() {
 
   group('GameRepository - getRandomSpeeches', () {
     final mockSpeeches = [
-      const SpeechModel(
+      SpeechModel(
         id: '1',
         text: 'Hello World',
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         audioUrl: 'https://example.com/audio1.mp3',
-        tags: [],
+        tagIds: [],
+        createdAt: DateTime(2024, 1, 1),
       ),
-      const SpeechModel(
+      SpeechModel(
         id: '2',
         text: 'Good morning',
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.phrase,
         audioUrl: 'https://example.com/audio2.mp3',
-        tags: [],
+        tagIds: [],
+        createdAt: DateTime(2024, 1, 1),
       ),
     ];
 
@@ -260,7 +260,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         count: 10,
       );
 
@@ -268,7 +268,7 @@ void main() {
       expect(result, equals(Right(mockSpeeches)));
       verify(mockRemoteDataSource.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         tagIds: null,
         count: 10,
       )).called(1);
@@ -291,7 +291,7 @@ void main() {
       // Act
       await repository.getRandomSpeeches(
         level: SpeechLevel.intermediate,
-        type: SpeechType.listenAndRepeat,
+        type: SpeechType.phrase,
         tagIds: ['tag1', 'tag2'],
         count: 5,
       );
@@ -299,7 +299,7 @@ void main() {
       // Assert
       verify(mockRemoteDataSource.getRandomSpeeches(
         level: SpeechLevel.intermediate,
-        type: SpeechType.listenAndRepeat,
+        type: SpeechType.phrase,
         tagIds: ['tag1', 'tag2'],
         count: 5,
       )).called(1);
@@ -319,7 +319,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         count: 10,
       );
 
@@ -345,9 +345,10 @@ void main() {
           id: '$i',
           text: 'Speech $i',
           level: SpeechLevel.beginner,
-          type: SpeechType.listenOnly,
+          type: SpeechType.sentence,
           audioUrl: 'https://example.com/audio$i.mp3',
-          tags: const [],
+          tagIds: const [],
+          createdAt: DateTime(2024, 1, 1),
         ),
       );
       when(mockConnectivity.checkConnectivity()).thenAnswer(
@@ -362,7 +363,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.sentence,
         count: 5,
       );
 
@@ -374,8 +375,7 @@ void main() {
       );
     });
 
-    test('should return NetworkFailure when offline and no cached speeches',
-        () async {
+    test('should return NetworkFailure when offline and no cached speeches', () async {
       // Arrange
       when(mockConnectivity.checkConnectivity()).thenAnswer(
         (_) async => [ConnectivityResult.none],
@@ -389,7 +389,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         count: 10,
       );
 
@@ -421,7 +421,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         count: 10,
       );
 
@@ -444,7 +444,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         count: 10,
       );
 
@@ -471,7 +471,7 @@ void main() {
       // Act
       final result = await repository.getRandomSpeeches(
         level: SpeechLevel.beginner,
-        type: SpeechType.listenOnly,
+        type: SpeechType.word,
         count: -1,
       );
 
@@ -490,13 +490,17 @@ void main() {
       userId: 'user-1',
       mode: GameMode.listenOnly,
       level: SpeechLevel.beginner,
-      startTime: DateTime.now(),
-      endTime: DateTime.now().add(const Duration(minutes: 5)),
+      type: SpeechType.word,
+      tagIds: const [],
+      results: const [],
       totalSpeeches: 10,
-      correctAnswers: 8,
-      accuracy: 80.0,
+      correctCount: 8,
+      incorrectCount: 2,
+      averageScore: 80.0,
+      streakCount: 5,
+      startedAt: DateTime(2024, 1, 1),
+      completedAt: DateTime(2024, 1, 1, 0, 5),
       syncStatus: SyncStatus.pending,
-      speeches: const [],
     );
 
     test('should save session locally and sync when connected', () async {
@@ -622,26 +626,34 @@ void main() {
         userId: 'user-1',
         mode: GameMode.listenOnly,
         level: SpeechLevel.beginner,
-        startTime: DateTime.now(),
-        endTime: DateTime.now().add(const Duration(minutes: 5)),
+        type: SpeechType.word,
+        tagIds: const [],
+        results: const [],
         totalSpeeches: 10,
-        correctAnswers: 8,
-        accuracy: 80.0,
+        correctCount: 8,
+        incorrectCount: 2,
+        averageScore: 80.0,
+        streakCount: 5,
+        startedAt: DateTime(2024, 1, 1),
+        completedAt: DateTime(2024, 1, 1, 0, 5),
         syncStatus: SyncStatus.pending,
-        speeches: const [],
       ),
       GameSessionModel(
         id: 'session-2',
         userId: 'user-1',
         mode: GameMode.listenAndRepeat,
         level: SpeechLevel.intermediate,
-        startTime: DateTime.now(),
-        endTime: DateTime.now().add(const Duration(minutes: 10)),
+        type: SpeechType.phrase,
+        tagIds: const [],
+        results: const [],
         totalSpeeches: 15,
-        correctAnswers: 12,
-        accuracy: 80.0,
+        correctCount: 12,
+        incorrectCount: 3,
+        averageScore: 80.0,
+        streakCount: 8,
+        startedAt: DateTime(2024, 1, 1),
+        completedAt: DateTime(2024, 1, 1, 0, 10),
         syncStatus: SyncStatus.pending,
-        speeches: const [],
       ),
     ];
 
@@ -803,13 +815,17 @@ void main() {
         userId: 'user-1',
         mode: GameMode.listenOnly,
         level: SpeechLevel.beginner,
-        startTime: DateTime.now(),
-        endTime: DateTime.now().add(const Duration(minutes: 5)),
+        type: SpeechType.word,
+        tagIds: const [],
+        results: const [],
         totalSpeeches: 10,
-        correctAnswers: 8,
-        accuracy: 80.0,
+        correctCount: 8,
+        incorrectCount: 2,
+        averageScore: 80.0,
+        streakCount: 5,
+        startedAt: DateTime(2024, 1, 1),
+        completedAt: DateTime(2024, 1, 1, 0, 5),
         syncStatus: SyncStatus.synced,
-        speeches: const [],
       ),
     ];
 
@@ -935,13 +951,17 @@ void main() {
       userId: 'user-1',
       mode: GameMode.listenOnly,
       level: SpeechLevel.beginner,
-      startTime: DateTime.now(),
-      endTime: DateTime.now().add(const Duration(minutes: 5)),
+      type: SpeechType.word,
+      tagIds: const [],
+      results: const [],
       totalSpeeches: 10,
-      correctAnswers: 8,
-      accuracy: 80.0,
+      correctCount: 8,
+      incorrectCount: 2,
+      averageScore: 80.0,
+      streakCount: 5,
+      startedAt: DateTime(2024, 1, 1),
+      completedAt: DateTime(2024, 1, 1, 0, 5),
       syncStatus: SyncStatus.synced,
-      speeches: const [],
     );
 
     test('should return session by ID from local storage', () async {

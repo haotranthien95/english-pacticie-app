@@ -40,8 +40,8 @@ void main() {
     email: tEmail,
     username: tUsername,
     displayName: tDisplayName,
-    authProvider: 'email',
-    createdAt: DateTime(2024, 1, 1).toIso8601String(),
+    authProvider: AuthProvider.email,
+    createdAt: DateTime(2024, 1, 1),
   );
 
   final tUser = User(
@@ -101,8 +101,7 @@ void main() {
       verify(mockLocalDataSource.saveUser(tUserModel)).called(1);
     });
 
-    test('should return NetworkFailure when NetworkException is thrown',
-        () async {
+    test('should return NetworkFailure when NetworkException is thrown', () async {
       // arrange
       when(mockRemoteDataSource.register(
         email: tEmail,
@@ -132,8 +131,7 @@ void main() {
       verifyNever(mockLocalDataSource.saveUser(any));
     });
 
-    test('should return ServerFailure when ServerException is thrown',
-        () async {
+    test('should return ServerFailure when ServerException is thrown', () async {
       // arrange
       when(mockRemoteDataSource.register(
         email: tEmail,
@@ -161,8 +159,7 @@ void main() {
       );
     });
 
-    test('should return ValidationFailure when ValidationException is thrown',
-        () async {
+    test('should return ValidationFailure when ValidationException is thrown', () async {
       // arrange
       when(mockRemoteDataSource.register(
         email: tEmail,
@@ -190,8 +187,7 @@ void main() {
       );
     });
 
-    test('should return StorageFailure when StorageException is thrown',
-        () async {
+    test('should return StorageFailure when StorageException is thrown', () async {
       // arrange
       when(mockRemoteDataSource.register(
         email: tEmail,
@@ -337,14 +333,13 @@ void main() {
       email: 'google@example.com',
       username: 'googleuser',
       displayName: 'Google User',
-      authProvider: 'google',
-      createdAt: DateTime(2024, 1, 1).toIso8601String(),
+      authProvider: AuthProvider.google,
+      createdAt: DateTime(2024, 1, 1),
     );
 
     test('should return User when Google login succeeds', () async {
       // arrange
-      when(mockFirebaseAuthService.getOAuthToken(AuthProvider.google))
-          .thenAnswer(
+      when(mockFirebaseAuthService.getOAuthToken(AuthProvider.google)).thenAnswer(
         (_) async => {'token': tOAuthToken, 'provider': 'google'},
       );
       when(mockRemoteDataSource.socialLogin(
@@ -363,8 +358,7 @@ void main() {
 
       // assert
       expect(result, isA<Right<Failure, User>>());
-      verify(mockFirebaseAuthService.getOAuthToken(AuthProvider.google))
-          .called(1);
+      verify(mockFirebaseAuthService.getOAuthToken(AuthProvider.google)).called(1);
       verify(mockRemoteDataSource.socialLogin(
         provider: 'google',
         token: tOAuthToken,
@@ -375,8 +369,7 @@ void main() {
 
     test('should return User when Apple login succeeds', () async {
       // arrange
-      when(mockFirebaseAuthService.getOAuthToken(AuthProvider.apple))
-          .thenAnswer(
+      when(mockFirebaseAuthService.getOAuthToken(AuthProvider.apple)).thenAnswer(
         (_) async => {'token': tOAuthToken, 'provider': 'apple'},
       );
       when(mockRemoteDataSource.socialLogin(
@@ -395,8 +388,7 @@ void main() {
 
       // assert
       expect(result, isA<Right<Failure, User>>());
-      verify(mockFirebaseAuthService.getOAuthToken(AuthProvider.apple))
-          .called(1);
+      verify(mockFirebaseAuthService.getOAuthToken(AuthProvider.apple)).called(1);
     });
 
     test('should return AuthFailure when OAuth is cancelled', () async {
@@ -424,11 +416,9 @@ void main() {
       ));
     });
 
-    test('should return NetworkFailure when social login has network error',
-        () async {
+    test('should return NetworkFailure when social login has network error', () async {
       // arrange
-      when(mockFirebaseAuthService.getOAuthToken(AuthProvider.facebook))
-          .thenAnswer(
+      when(mockFirebaseAuthService.getOAuthToken(AuthProvider.facebook)).thenAnswer(
         (_) async => {'token': tOAuthToken, 'provider': 'facebook'},
       );
       when(mockRemoteDataSource.socialLogin(
@@ -532,8 +522,7 @@ void main() {
 
     test('should return AuthFailure when not authenticated', () async {
       // arrange
-      when(mockLocalDataSource.isAuthenticated())
-          .thenAnswer((_) async => false);
+      when(mockLocalDataSource.isAuthenticated()).thenAnswer((_) async => false);
 
       // act
       final result = await repository.getCurrentUser();
@@ -553,8 +542,7 @@ void main() {
     test('should return CacheFailure when CacheException is thrown', () async {
       // arrange
       when(mockLocalDataSource.isAuthenticated()).thenAnswer((_) async => true);
-      when(mockLocalDataSource.getUser())
-          .thenThrow(const CacheException(message: 'Cache error'));
+      when(mockLocalDataSource.getUser()).thenThrow(const CacheException(message: 'Cache error'));
 
       // act
       final result = await repository.getCurrentUser();
@@ -585,8 +573,7 @@ void main() {
 
     test('should return false when user is not authenticated', () async {
       // arrange
-      when(mockLocalDataSource.isAuthenticated())
-          .thenAnswer((_) async => false);
+      when(mockLocalDataSource.isAuthenticated()).thenAnswer((_) async => false);
 
       // act
       final result = await repository.isAuthenticated();
